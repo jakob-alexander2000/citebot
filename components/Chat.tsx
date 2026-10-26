@@ -16,7 +16,9 @@ type Message = {
   error?: boolean;
 };
 
-const TOPICS = [
+export type Topic = { title: string; desc: string };
+
+const FALLBACK_TOPICS: Topic[] = [
   { title: "Welcome & culture", desc: "Mission, hours, hybrid office" },
   { title: "PTO & leave", desc: "Vacation, sick leave, parental" },
   { title: "Expenses", desc: "Reimbursement rules & how to submit" },
@@ -32,7 +34,9 @@ const SUGGESTIONS = [
   "How does Friday demo day work?",
 ];
 
-export function Chat() {
+export function Chat({ topics }: { topics?: Topic[] } = {}) {
+  // undefined → sample fallback; [] → still loading / empty corpus → hide section.
+  const TOPICS = topics ?? FALLBACK_TOPICS;
   const brand = getBrand();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -132,6 +136,7 @@ export function Chat() {
               </p>
             </div>
 
+            {TOPICS.length > 0 && (
             <section>
               <div className="mb-3 flex items-baseline justify-between">
                 <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
@@ -160,6 +165,7 @@ export function Chat() {
                 ))}
               </ul>
             </section>
+            )}
 
             <section>
               <h2 className="mb-3 text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
