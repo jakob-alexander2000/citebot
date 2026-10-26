@@ -8,8 +8,13 @@ const CORPUS_EXTS = [".md", ".pdf"] as const;
 
 function corpusDir(): string {
   // Relative to project root only (e.g. corpus or client-docs).
-  const rel = process.env.CORPUS_DIR?.trim() || "corpus";
-  return path.join(/*turbopackIgnore: true*/ process.cwd(), rel);
+  // Default "corpus" stays statically joinable for Vercel file tracing;
+  // CORPUS_DIR overrides use turbopackIgnore (pair with outputFileTracingIncludes).
+  const rel = process.env.CORPUS_DIR?.trim();
+  if (rel) {
+    return path.join(/*turbopackIgnore: true*/ process.cwd(), rel);
+  }
+  return path.join(process.cwd(), "corpus");
 }
 
 function isCorpusFile(name: string): boolean {

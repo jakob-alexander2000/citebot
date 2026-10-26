@@ -1,10 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
   serverExternalPackages: ["unpdf"],
+  // Ensure handbook .md/.pdf ship with the serverless chat + handbook routes
+  outputFileTracingIncludes: {
+    "/": ["./corpus/**/*", "./examples/de-qm-corpus/**/*"],
+    "/handbook": ["./corpus/**/*", "./examples/de-qm-corpus/**/*"],
+    "/api/chat": ["./corpus/**/*", "./examples/de-qm-corpus/**/*"],
+  },
   turbopack: {
     rules: {
       "*.css": {
