@@ -17,11 +17,11 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.GEMINI_API_KEY) {
       return NextResponse.json(
         {
           error:
-            "Server is missing OPENAI_API_KEY. Add it to .env.local and restart.",
+            "Server is missing GEMINI_API_KEY. Add it to .env.local and restart.",
         },
         { status: 503 },
       );

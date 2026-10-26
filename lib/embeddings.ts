@@ -1,29 +1,43 @@
-import OpenAI from "openai";
+import { GoogleGenerativeAI, TaskType } from "@google/generative-ai";
 
-export const EMBEDDING_MODEL = "text-embedding-3-small";
-export const CHAT_MODEL = "gpt-4o-mini";
+export const EMBEDDING_MODEL = "text-embedding-004";
+export const CHAT_MODEL = "gemini-2.0-flash";
 
-export function getOpenAI(): OpenAI {
-  const key = process.env.OPENAI_API_KEY;
+const EMBED_BATCH_SIZE = 16;
+
+export function getGemini(): GoogleGenerativeAI {
+  const key = process.env.GEMINI_API_KEY;
   if (!key) {
     throw new Error(
-      "Missing OPENAI_API_KEY. Copy .env.example to .env.local and add your key.",
+      "Missing GEMINI_API_KEY. Copy .env.example to .env.local and add your Google AI Studio key.",
     );
   }
-  return new OpenAI({ apiKey: key });
+  return new GoogleGenerativeAI(key);
 }
 
-export async function embedTexts(texts: string[]): Promise<number[][]> {
+export async function embedTexts(
+  texts: string[],
+  taskType: TaskType = TaskType.RETRIEVAL_DOCUMENT,
+): Promise<number[][]> {
   if (texts.length === 0) return [];
-  const client = getOpenAI();
-  const response = await client.embeddings.create({
-    model: EMBEDDING_MODEL,
-    input: texts,
-  });
-  return response.data
-    .slice()
-    .sort((a, b) => a.index - b.index)
-    .map((row) => row.embedding);
+  const client = getGemini();
+  const model = client.getGenerativeModel({ model: EMBEDDING_MODEL });
+  const out: number[][] = [];
+
+  for (let i = 0; i < texts.length; i += EMBED_BATCH_SIZE) {
+    const batch = texts.slice(i, i + EMBED_BATCH_SIZE);
+    const result = await model.batchEmbedContents({
+      requests: batch.map((text) => ({
+        content: { role: "user", parts: [{ text }] },
+        taskType,
+      })),
+    });
+    for (const emb of result.embeddings) {
+      out.push(emb.values);
+    }
+  }
+
+  return out;
 }
 
 export function cosineSimilarity(a: number[], b: number[]): number {

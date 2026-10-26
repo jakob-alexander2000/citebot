@@ -1,4 +1,4 @@
-import { CHAT_MODEL, getOpenAI } from "./embeddings";
+import { CHAT_MODEL, getGemini } from "./embeddings";
 import { retrieve } from "./vector-store";
 import type { ChatResponse } from "./types";
 
@@ -6,7 +6,11 @@ export async function answerWithCitations(
   question: string,
 ): Promise<ChatResponse> {
   const citations = await retrieve(question, 4);
-  const client = getOpenAI();
+  const client = getGemini();
+  const model = client.getGenerativeModel({
+    model: CHAT_MODEL,
+    generationConfig: { temperature: 0.2 },
+  });
 
   const context = citations
     .map(
@@ -15,27 +19,19 @@ export async function answerWithCitations(
     )
     .join("\n\n");
 
-  const completion = await client.chat.completions.create({
-    model: CHAT_MODEL,
-    temperature: 0.2,
-    messages: [
-      {
-        role: "system",
-        content: `You are CiteBot, a concise assistant for the Nordlicht Labs employee handbook.
+  const prompt = `You are CiteBot, a concise assistant for the Nordlicht Labs employee handbook.
 Answer only from the provided context. If the context is insufficient, say you do not have that in the handbook.
 Cite sources inline using [n] markers that match the context numbers.
-Keep answers short (2–6 sentences) unless the user asks for detail.`,
-      },
-      {
-        role: "user",
-        content: `Question: ${question}\n\nContext:\n${context || "(no retrieved passages)"}`,
-      },
-    ],
-  });
+Keep answers short (2–6 sentences) unless the user asks for detail.
 
+Question: ${question}
+
+Context:
+${context || "(no retrieved passages)"}`;
+
+  const result = await model.generateContent(prompt);
   const answer =
-    completion.choices[0]?.message?.content?.trim() ||
-    "I could not generate an answer.";
+    result.response.text()?.trim() || "I could not generate an answer.";
 
   return { answer, citations };
 }

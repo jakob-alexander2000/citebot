@@ -1,10 +1,16 @@
 import fs from "node:fs";
 import path from "node:path";
 import { corpusFingerprint, loadCorpusChunks } from "./corpus";
+import { TaskType } from "@google/generative-ai";
 import { cosineSimilarity, embedTexts, EMBEDDING_MODEL } from "./embeddings";
 import type { Citation, EmbeddedChunk } from "./types";
 
-const CACHE_PATH = path.join(process.cwd(), ".cache", "embeddings.json");
+/** Gemini embedding cache — do not reuse OpenAI vectors from embeddings.json */
+const CACHE_PATH = path.join(
+  process.cwd(),
+  ".cache",
+  "embeddings-gemini-v1.json",
+);
 
 type CacheFile = {
   fingerprint: string;
@@ -55,7 +61,10 @@ export async function ensureIndex(): Promise<EmbeddedChunk[]> {
       if (chunks.length === 0) {
         throw new Error("No corpus documents found under /corpus.");
       }
-      const embeddings = await embedTexts(chunks.map((c) => c.text));
+      const embeddings = await embedTexts(
+        chunks.map((c) => c.text),
+        TaskType.RETRIEVAL_DOCUMENT,
+      );
       const embedded: EmbeddedChunk[] = chunks.map((chunk, i) => ({
         ...chunk,
         embedding: embeddings[i]!,
@@ -77,7 +86,7 @@ export async function retrieve(
   topK = 4,
 ): Promise<Citation[]> {
   const store = await ensureIndex();
-  const [queryEmbedding] = await embedTexts([query]);
+  const [queryEmbedding] = await embedTexts([query], TaskType.RETRIEVAL_QUERY);
   if (!queryEmbedding) return [];
 
   const scored = store

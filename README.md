@@ -8,7 +8,7 @@ Live intent: prove retrieval + grounded generation in a clickable UI, not a mult
 
 ## 30-second demo script
 
-1. `npm install && cp .env.example .env.local` — paste an OpenAI API key.
+1. `npm install && cp .env.example .env.local` — paste a **Google AI Studio** API key ([get one](https://aistudio.google.com/apikey)).
 2. `npm run dev` → open http://localhost:3000
 3. Click **“How many PTO days do full-time employees get?”**
 4. Expand a citation chip — you should see `pto-and-leave.md` and the “30 days” passage.
@@ -16,14 +16,20 @@ Live intent: prove retrieval + grounded generation in a clickable UI, not a mult
 
 First question triggers one-time ingest (embeddings cached under `.cache/`). Optional: `npm run ingest` beforehand.
 
+## Cost / keys
+
+- Uses **Gemini Flash** (`gemini-2.0-flash`) + `text-embedding-004` — cheap enough for a portfolio demo; AI Studio free tier usually covers light traffic.
+- Put `GEMINI_API_KEY` only in `.env.local` or Vercel Environment Variables (server-only). **Never commit keys.** Prefer a dedicated AI Studio key with a spend alert if billing is enabled.
+- Do not prefix with `NEXT_PUBLIC_` — the key must stay on the server (`/api/chat`).
+
 ## Architecture (short)
 
 ```
-corpus/*.md  →  chunk  →  OpenAI embeddings (text-embedding-3-small)
+corpus/*.md  →  chunk  →  Gemini embeddings (text-embedding-004)
                               ↓
-                     local JSON vector cache (.cache/embeddings.json)
+                     local JSON vector cache (.cache/embeddings-gemini-v1.json)
                               ↓
-question → embed → cosine top-k → gpt-4o-mini answer + citation chips
+question → embed → cosine top-k → gemini-2.0-flash answer + citation chips
 ```
 
 - **App:** Next.js App Router, TypeScript, Tailwind
@@ -31,13 +37,13 @@ question → embed → cosine top-k → gpt-4o-mini answer + citation chips
 - **Generation:** single LLM call with numbered context; UI shows expandable source chips
 - **Optional later:** Neon + pgvector for a production path (not wired in this scaffold)
 
-No multi-agent frameworks. No billing. No multi-tenant.
+No multi-agent frameworks. No billing UI. No multi-tenant.
 
 ## Run locally
 
 ```bash
 npm install
-cp .env.example .env.local   # set OPENAI_API_KEY
+cp .env.example .env.local   # set GEMINI_API_KEY
 npm run ingest               # optional warm cache
 npm run dev
 ```
@@ -45,7 +51,7 @@ npm run dev
 | Script | What it does |
 |--------|----------------|
 | `npm run dev` | Dev server |
-| `npm run build` | Production build (does **not** call OpenAI) |
+| `npm run build` | Production build (does **not** call Gemini) |
 | `npm run start` | Serve the build |
 | `npm run ingest` | Precompute embeddings into `.cache/` |
 | `npm run lint` | ESLint |
@@ -54,7 +60,7 @@ npm run dev
 
 | Name | Required | Notes |
 |------|----------|--------|
-| `OPENAI_API_KEY` | Yes (for chat) | Used for embeddings + chat completions |
+| `GEMINI_API_KEY` | Yes (for chat) | Google AI Studio key — embeddings + Flash chat |
 
 ## Sample corpus
 
