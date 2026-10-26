@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 type Props = {
-  active?: "chat" | "handbook";
+  active?: "chat" | "handbook" | "harness";
 };
 
 export function SiteHeader({ active = "chat" }: Props) {
@@ -25,14 +25,17 @@ export function SiteHeader({ active = "chat" }: Props) {
             <NavLink href="/handbook" active={active === "handbook"}>
               Handbook
             </NavLink>
+            <NavLink href="/harness" active={active === "harness"}>
+              Harness
+            </NavLink>
           </nav>
         </div>
         <div className="flex items-center gap-3">
           <Link
-            href="/handbook"
+            href="/harness"
             className="text-xs text-zinc-500 transition hover:text-zinc-900 sm:hidden dark:hover:text-zinc-100"
           >
-            Handbook
+            Harness
           </Link>
           <a
             href="https://github.com/jakob-alexander2000/citebot"

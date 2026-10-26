@@ -6,13 +6,21 @@ CiteBot is a small RAG demo: upload is mocked by a committed sample corpus, retr
 
 Live intent: prove retrieval + grounded generation in a clickable UI, not a multi-agent platform.
 
+## Verify harness
+
+After each answer, CiteBot runs a shared verify step (`lib/verify.ts`) that checks claims against retrieved handbook chunks and shows an **Evidence** panel (pass / fail / unsupported). See [FEATURE_MAP.md](./FEATURE_MAP.md) and the public writeup at [/harness](https://citebot-chi.vercel.app/harness).
+
+**Try:** ask about PTO days (expect passes) then “What’s our office dog’s name?” (expect refusal / unsupported — not a fake grounded answer).
+
+
 ## 30-second demo script
 
 1. `npm install && cp .env.example .env.local` — paste a **Google AI Studio** API key ([get one](https://aistudio.google.com/apikey)).
 2. `npm run dev` → open http://localhost:3000
 3. Click **“How many PTO days do full-time employees get?”**
 4. Expand a citation chip — you should see `pto-and-leave.md` and the “30 days” passage.
-5. Ask something off-corpus (“What’s our office dog’s name?”) — CiteBot should refuse cleanly.
+5. Ask something off-corpus (“What’s our office dog’s name?”) — CiteBot should refuse cleanly; the Evidence panel should not mark a dog name as pass.
+6. Open [/harness](https://citebot-chi.vercel.app/harness) for the hiring-manager writeup.
 
 First question triggers one-time ingest (embeddings cached under `.cache/`). Optional: `npm run ingest` beforehand.
 
@@ -30,11 +38,14 @@ corpus/*.md  →  chunk  →  Gemini embeddings (gemini-embedding-001)
                      local JSON vector cache (.cache/embeddings-gemini-v2.json)
                               ↓
 question → embed → cosine top-k → gemini-3.6-flash answer + citation chips
+                              ↓
+                     verifyAnswer(claims vs chunks) → evidence panel
 ```
 
 - **App:** Next.js App Router, TypeScript, Tailwind
 - **Retrieval:** in-memory / on-disk JSON store (no database required for the demo)
 - **Generation:** single LLM call with numbered context; UI shows expandable source chips
+- **Verify:** shared second pass labels each claim pass / fail / unsupported against those chunks
 - **Optional later:** Neon + pgvector for a production path (not wired in this scaffold)
 
 No multi-agent frameworks. No billing UI. No multi-tenant.

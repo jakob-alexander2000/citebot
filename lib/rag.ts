@@ -1,5 +1,6 @@
 import { CHAT_MODEL, getGemini } from "./embeddings";
 import { retrieve } from "./vector-store";
+import { verifyAnswer } from "./verify";
 import type { ChatResponse } from "./types";
 
 export async function answerWithCitations(
@@ -33,5 +34,7 @@ ${context || "(no retrieved passages)"}`;
   const answer =
     result.response.text()?.trim() || "I could not generate an answer.";
 
-  return { answer, citations };
+  const verification = await verifyAnswer(question, answer, citations);
+
+  return { answer, citations, verification };
 }

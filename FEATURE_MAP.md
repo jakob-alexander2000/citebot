@@ -1,0 +1,44 @@
+# CiteBot feature map
+
+## Verify harness (shared path)
+
+**What it does**  
+After every answer, CiteBot runs one verify step against the *same* retrieved handbook chunks used for generation. The verifier splits the answer into atomic claims and labels each:
+
+| Verdict | Meaning |
+|---------|---------|
+| `pass` | Claim is supported by a retrieved passage |
+| `fail` | Claim contradicts a retrieved passage |
+| `unsupported` | Claim is not backed by retrieved context |
+
+A correct “not in the handbook” refusal counts as `pass` (the gap is real). Results surface in the **Evidence** panel under the citation pills — not a cosmetic score.
+
+**Where it lives**
+
+| Piece | Path |
+|-------|------|
+| Types | `lib/types.ts` (`EvidenceClaim`, `Verification`) |
+| Verify logic | `lib/verify.ts` → `verifyAnswer()` |
+| Wired after RAG | `lib/rag.ts` → `answerWithCitations()` |
+| API | `app/api/chat/route.ts` (unchanged shape + `verification`) |
+| UI | `components/EvidencePanel.tsx` (+ `Chat.tsx`) |
+| Writeup | `/harness` |
+
+**How to drive**
+
+1. Ask a handbook question on `/` (e.g. vacation days).
+2. Expand a source pill — handbook passage still works.
+3. Read the Evidence panel: claims + pass/fail/unsupported.
+
+**How to verify**
+
+1. Grounded: *“How many vacation days do full-time employees get?”* → expect `pass` on ~30 days with PTO evidence.
+2. Trick: *“What’s our office dog’s name?”* → refuse / unsupported invented facts; no fake dog name marked `pass`.
+3. `npm run build` must succeed.
+4. Live: https://citebot-chi.vercel.app
+
+## Intentionally not built
+
+- Multi-agent “judge swarm”
+- New product name / Electron desktop
+- Eval suite as a separate app (next successive bet)

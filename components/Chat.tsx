@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { FormEvent, useRef, useState } from "react";
 import { Citations } from "./Citations";
-import type { Citation } from "@/lib/types";
+import { EvidencePanel } from "./EvidencePanel";
+import type { Citation, Verification } from "@/lib/types";
 
 type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
   citations?: Citation[];
+  verification?: Verification;
   error?: boolean;
 };
 
@@ -65,6 +67,7 @@ export function Chat() {
           role: "assistant",
           content: data.answer as string,
           citations: (data.citations as Citation[]) || [],
+          verification: data.verification as Verification | undefined,
         },
       ]);
     } catch (err) {
@@ -107,13 +110,21 @@ export function Chat() {
                 Get the source.
               </h1>
               <p className="mt-4 max-w-md text-[15px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-                Document-grounded answers only — not a general chatbot. If the
-                handbook doesn&apos;t cover it, CiteBot says so.{" "}
+                Document-grounded answers only — not a general chatbot. After
+                each answer a verify step checks claims against retrieved
+                passages.{" "}
                 <Link
                   href="/handbook"
                   className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 transition hover:decoration-zinc-900 dark:text-zinc-100 dark:decoration-zinc-600 dark:hover:decoration-zinc-300"
                 >
                   Read the corpus
+                </Link>
+                {" · "}
+                <Link
+                  href="/harness"
+                  className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 transition hover:decoration-zinc-900 dark:text-zinc-100 dark:decoration-zinc-600 dark:hover:decoration-zinc-300"
+                >
+                  How the harness works
                 </Link>
                 .
               </p>
@@ -193,13 +204,19 @@ export function Chat() {
                   {msg.citations && msg.citations.length > 0 ? (
                     <Citations citations={msg.citations} />
                   ) : null}
+                  {msg.verification ? (
+                    <EvidencePanel
+                      verification={msg.verification}
+                      citations={msg.citations || []}
+                    />
+                  ) : null}
                 </div>
               ),
             )}
             {loading ? (
               <div className="flex items-center gap-2 text-sm text-zinc-500">
                 <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-zinc-400" />
-                Retrieving sources…
+                Retrieving & verifying…
               </div>
             ) : null}
             <div ref={bottomRef} />
