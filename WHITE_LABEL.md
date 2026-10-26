@@ -29,12 +29,12 @@ Defaults without these = the CiteBot / Nordlicht demo.
 ## 3. Swap corpus
 
 ```bash
-rm corpus/*.md
-# drop client markdown into corpus/
+rm corpus/*.md corpus/*.pdf
+# drop client .md / .pdf into corpus/
 rm -rf .cache && npm run ingest
 ```
 
-See [`corpus/README.md`](./corpus/README.md). PDF → next todo (convert to `.md` for now).
+See [`corpus/README.md`](./corpus/README.md). Markdown and PDF both work; drop files into `corpus/` and re-ingest.
 
 ## 4. Deploy on Vercel
 
@@ -57,3 +57,7 @@ URL: `https://{project-slug}.vercel.app`.
 3. `/handbook` lists their markdown; `/harness` explains the verify loop.
 
 Kept from the base product: Gemini RAG, verify harness, handbook browser.
+
+## German QM sample
+
+Short Arbeitsschutz/QM markdown lives in [`examples/de-qm-corpus/`](./examples/de-qm-corpus/). Use it for a second Vercel project (different `NEXT_PUBLIC_BRAND_*`, `CORPUS_DIR=examples/de-qm-corpus` or copy into `corpus/`).

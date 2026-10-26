@@ -53,3 +53,15 @@ One codebase, many client deploys. `lib/brand.ts` reads `NEXT_PUBLIC_BRAND_*`; `
 1. `NEXT_PUBLIC_BRAND_NAME=Acme Handbook NEXT_PUBLIC_BRAND_ACCENT=#1d4ed8 npm run build && npm run start` — header/hero show Acme + blue accent.
 2. Replace `corpus/*.md`, `rm -rf .cache`, ask a question from the new docs.
 3. See [WHITE_LABEL.md](./WHITE_LABEL.md).
+
+## PDF ingest
+
+**What it does**  
+`corpus/*.pdf` is extracted via `unpdf` → plain text → same chunk/embed path as markdown (`lib/corpus.ts`, `lib/pdf.ts`). Handbook browser shows a PDF badge + extracted text.
+
+**How to verify**
+
+1. `corpus/remote-work-policy.pdf` is present (or `node scripts/make-sample-pdf.mjs`).
+2. `rm -rf .cache && npm run ingest` — logs chunks including `remote-work-policy-*`.
+3. Ask: *“How many remote days per week?”* → cite the PDF; `/handbook` lists it.
+4. `npm run build` must succeed.

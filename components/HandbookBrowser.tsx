@@ -11,6 +11,7 @@ export type HandbookDocPayload = {
   title: string;
   summary: string;
   content: string;
+  format?: "md" | "pdf";
 };
 
 export function HandbookBrowser({ docs }: { docs: HandbookDocPayload[] }) {
@@ -97,10 +98,21 @@ export function HandbookBrowser({ docs }: { docs: HandbookDocPayload[] }) {
       <section className="min-w-0 flex-1">
         {active ? (
           <article className="rounded-xl border border-zinc-200 bg-white px-5 py-6 sm:px-8 sm:py-8 dark:border-zinc-800 dark:bg-zinc-950">
-            <p className="mb-6 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-400">
-              {active.filename}
+            <p className="mb-6 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-400">
+              <span>{active.filename}</span>
+              {active.format === "pdf" ? (
+                <span className="rounded border border-zinc-200 px-1.5 py-0.5 text-[9px] font-medium normal-case tracking-normal text-zinc-500 dark:border-zinc-700">
+                  PDF
+                </span>
+              ) : null}
             </p>
-            <Markdown content={active.content} />
+            {active.format === "pdf" ? (
+              <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
+                {active.content}
+              </pre>
+            ) : (
+              <Markdown content={active.content} />
+            )}
           </article>
         ) : null}
       </section>

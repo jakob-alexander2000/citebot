@@ -62,7 +62,7 @@ export async function ensureIndex(): Promise<EmbeddedChunk[]> {
 
   if (!ingestPromise) {
     ingestPromise = (async () => {
-      const chunks = loadCorpusChunks();
+      const chunks = await loadCorpusChunks();
       if (chunks.length === 0) {
         throw new Error(`No corpus documents found under ${process.env.CORPUS_DIR?.trim() || "corpus"}.`);
       }

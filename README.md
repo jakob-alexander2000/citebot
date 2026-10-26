@@ -36,7 +36,7 @@ Configure brand + corpus without forking logic:
 | Docs | Drop `.md` into `corpus/` (or set `CORPUS_DIR`) → `rm -rf .cache && npm run ingest` |
 | Client URL | New Vercel project → `{slug}.vercel.app` |
 
-Example env: [`examples/acme-handbook.env`](./examples/acme-handbook.env). Full steps: [WHITE_LABEL.md](./WHITE_LABEL.md). PDF ingest and German sample corpus are next — not required for this MVP.
+Example env: [`examples/acme-handbook.env`](./examples/acme-handbook.env). Full steps: [WHITE_LABEL.md](./WHITE_LABEL.md). PDF ingest ships in-repo (`unpdf`); German sample corpus is the next client demo.
 
 ## Cost / keys
 
