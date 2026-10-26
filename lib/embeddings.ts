@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI, TaskType } from "@google/generative-ai";
 
-export const EMBEDDING_MODEL = "text-embedding-004";
+export const EMBEDDING_MODEL = "gemini-embedding-001";
 export const CHAT_MODEL = "gemini-2.0-flash";
 
 const EMBED_BATCH_SIZE = 16;

@@ -9,7 +9,7 @@ import type { Citation, EmbeddedChunk } from "./types";
 const CACHE_PATH = path.join(
   process.cwd(),
   ".cache",
-  "embeddings-gemini-v1.json",
+  "embeddings-gemini-v2.json",
 );
 
 type CacheFile = {
