@@ -2,6 +2,7 @@ import { CHAT_MODEL, getGemini } from "./embeddings";
 import { retrieve } from "./vector-store";
 import { verifyAnswer } from "./verify";
 import type { ChatResponse } from "./types";
+import { getBrand } from "./brand";
 
 export async function answerWithCitations(
   question: string,
@@ -20,7 +21,8 @@ export async function answerWithCitations(
     )
     .join("\n\n");
 
-  const prompt = `You are CiteBot, a concise assistant for the Nordlicht Labs employee handbook.
+  const brand = getBrand();
+  const prompt = `You are ${brand.name}, a concise assistant for the ${brand.org} ${brand.corpusLabel}.
 Answer only from the provided context. If the context is insufficient, say you do not have that in the handbook.
 Cite sources inline using [n] markers that match the context numbers.
 Keep answers short (2–6 sentences) unless the user asks for detail.

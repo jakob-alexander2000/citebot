@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Markdown } from "./Markdown";
+import { getBrand } from "@/lib/brand";
 
 export type HandbookDocPayload = {
   slug: string;
@@ -13,6 +14,7 @@ export type HandbookDocPayload = {
 };
 
 export function HandbookBrowser({ docs }: { docs: HandbookDocPayload[] }) {
+  const brand = getBrand();
   const [activeSlug, setActiveSlug] = useState(docs[0]?.slug ?? "");
   const active = useMemo(
     () => docs.find((d) => d.slug === activeSlug) ?? docs[0] ?? null,
@@ -34,7 +36,8 @@ export function HandbookBrowser({ docs }: { docs: HandbookDocPayload[] }) {
             Handbook
           </h1>
           <p className="mt-2 text-xs leading-relaxed text-zinc-500">
-            The five documents CiteBot retrieves from. Ask them on the{" "}
+            The {docs.length} document{docs.length === 1 ? "" : "s"}{" "}
+            {brand.name} retrieves from. Ask them on the{" "}
             <Link
               href="/"
               className="text-zinc-800 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-200"

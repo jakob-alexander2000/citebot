@@ -42,3 +42,14 @@ A correct “not in the handbook” refusal counts as `pass` (the gap is real). 
 - Multi-agent “judge swarm”
 - New product name / Electron desktop
 - Eval suite as a separate app (next successive bet)
+
+## White-label (env brand + corpus)
+
+**What it does**  
+One codebase, many client deploys. `lib/brand.ts` reads `NEXT_PUBLIC_BRAND_*`; `CORPUS_DIR` / `corpus/*.md` swap the handbook. Gemini + verify harness + handbook UI stay.
+
+**How to verify**
+
+1. `NEXT_PUBLIC_BRAND_NAME=Acme Handbook NEXT_PUBLIC_BRAND_ACCENT=#1d4ed8 npm run build && npm run start` — header/hero show Acme + blue accent.
+2. Replace `corpus/*.md`, `rm -rf .cache`, ask a question from the new docs.
+3. See [WHITE_LABEL.md](./WHITE_LABEL.md).

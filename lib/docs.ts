@@ -1,7 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const CORPUS_DIR = path.join(process.cwd(), "corpus");
+function corpusDir(): string {
+  // Relative to project root only (e.g. corpus or client-docs). PDF ingest = next.
+  const rel = process.env.CORPUS_DIR?.trim() || "corpus";
+  return path.join(/*turbopackIgnore: true*/ process.cwd(), rel);
+}
 
 export type HandbookDoc = {
   slug: string;
@@ -11,6 +15,7 @@ export type HandbookDoc = {
   content: string;
 };
 
+/** Preferred order for the sample Nordlicht corpus; unknown files sort after. */
 const ORDER = [
   "welcome",
   "pto-and-leave",
@@ -35,14 +40,15 @@ function summaryFromMarkdown(content: string): string {
 }
 
 export function listHandbookDocs(): HandbookDoc[] {
-  if (!fs.existsSync(CORPUS_DIR)) return [];
+  const dir = corpusDir();
+  if (!fs.existsSync(dir)) return [];
   const files = fs
-    .readdirSync(CORPUS_DIR)
+    .readdirSync(dir)
     .filter((f) => f.endsWith(".md"));
 
   const docs = files.map((filename) => {
     const slug = filename.replace(/\.md$/, "");
-    const content = fs.readFileSync(path.join(CORPUS_DIR, filename), "utf8");
+    const content = fs.readFileSync(path.join(dir, filename), "utf8");
     return {
       slug,
       filename,

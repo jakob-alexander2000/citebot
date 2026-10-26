@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
+import { getBrand } from "@/lib/brand";
 
-export const metadata = {
-  title: "Verify harness · CiteBot",
-  description:
-    "How CiteBot checks its own answers against retrieved handbook chunks — a hiring-manager writeup.",
-};
+export function generateMetadata() {
+  const brand = getBrand();
+  return {
+    title: `Verify harness · ${brand.name}`,
+    description: `How ${brand.name} checks its own answers against retrieved handbook chunks — a hiring-manager writeup.`,
+  };
+}
 
 export default function HarnessPage() {
+  const brand = getBrand();
   return (
     <main className="flex min-h-full flex-1 flex-col">
       <SiteHeader active="harness" />
@@ -19,11 +23,11 @@ export default function HarnessPage() {
           An agent that checks its own work.
         </h1>
         <p className="mt-4 text-[15px] leading-relaxed text-zinc-600 dark:text-zinc-400">
-          CiteBot answers from a small employee handbook. That alone is table
-          stakes. The interesting part is the second pass: after generation, a
-          shared verify step scores each claim against the same retrieved
-          chunks — pass, fail, or unsupported — and shows the evidence in the
-          UI.
+          {brand.name} answers from a small employee handbook. That alone is
+          table stakes. The interesting part is the second pass: after
+          generation, a shared verify step scores each claim against the same
+          retrieved chunks — pass, fail, or unsupported — and shows the
+          evidence in the UI.
         </p>
 
         <section className="mt-10 space-y-3">
@@ -91,8 +95,9 @@ export default function HarnessPage() {
                 Unsupported / refuse:
               </span>{" "}
               ask{" "}
-              <em>“What’s our office dog’s name?”</em> — CiteBot should say it
-              isn’t in the handbook; the verify step should mark the refusal as{" "}
+              <em>“What’s our office dog’s name?”</em> — {brand.name} should
+              say it isn’t in the handbook; the verify step should mark the
+              refusal as{" "}
               <span className="font-medium">pass</span> (correct gap) or any
               invented detail as{" "}
               <span className="font-medium">unsupported</span> /{" "}
@@ -104,7 +109,7 @@ export default function HarnessPage() {
               href="/"
               className="inline-flex items-center rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
             >
-              Open CiteBot →
+              Open {brand.name} →
             </Link>
           </p>
         </section>
@@ -119,7 +124,8 @@ export default function HarnessPage() {
           >
             Jakob Alex
           </a>{" "}
-          — extend CiteBot, don’t rename it. No multi-agent stack, no Electron.
+          — white-label via env (see WHITE_LABEL.md). No multi-agent stack, no
+          Electron.
         </section>
       </article>
     </main>

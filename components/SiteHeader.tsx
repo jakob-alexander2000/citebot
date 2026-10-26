@@ -1,21 +1,36 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { getBrand } from "@/lib/brand";
 
 type Props = {
   active?: "chat" | "handbook" | "harness";
 };
 
 export function SiteHeader({ active = "chat" }: Props) {
+  const brand = getBrand();
+
   return (
     <header className="sticky top-0 z-20 border-b border-zinc-200/80 bg-[var(--background)]/85 backdrop-blur-md dark:border-zinc-800/80">
       <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2.5">
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-900 bg-zinc-900 text-[11px] font-semibold tracking-wide text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900">
-              C
-            </span>
+            {brand.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={brand.logoUrl}
+                alt=""
+                className="h-7 w-7 rounded-md object-contain"
+              />
+            ) : (
+              <span
+                className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[11px] font-semibold tracking-wide text-white"
+                style={{ backgroundColor: "var(--brand-accent)" }}
+              >
+                {brand.initial}
+              </span>
+            )}
             <span className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-              CiteBot
+              {brand.name}
             </span>
           </Link>
           <nav className="hidden items-center gap-1 sm:flex">
@@ -37,14 +52,16 @@ export function SiteHeader({ active = "chat" }: Props) {
           >
             Harness
           </Link>
-          <a
-            href="https://github.com/jakob-alexander2000/citebot"
-            className="text-xs text-zinc-500 transition hover:text-zinc-900 dark:hover:text-zinc-100"
-            target="_blank"
-            rel="noreferrer"
-          >
-            GitHub
-          </a>
+          {brand.githubUrl ? (
+            <a
+              href={brand.githubUrl}
+              className="text-xs text-zinc-500 transition hover:text-zinc-900 dark:hover:text-zinc-100"
+              target="_blank"
+              rel="noreferrer"
+            >
+              GitHub
+            </a>
+          ) : null}
         </div>
       </div>
     </header>

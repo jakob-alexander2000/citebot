@@ -6,6 +6,7 @@ import type {
   Verification,
   VerificationSummary,
 } from "./types";
+import { getBrand } from "./brand";
 
 const VERDICTS = new Set<ClaimVerdict>(["pass", "fail", "unsupported"]);
 
@@ -102,7 +103,8 @@ export async function verifyAnswer(
     },
   });
 
-  const prompt = `You are the verify step for CiteBot (handbook RAG).
+  const brand = getBrand();
+  const prompt = `You are the verify step for ${brand.name} (handbook RAG).
 Split the ASSISTANT ANSWER into atomic factual claims (1–6). For each claim, check ONLY the RETRIEVED CONTEXT below.
 
 Verdict rules:

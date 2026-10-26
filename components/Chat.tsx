@@ -5,6 +5,7 @@ import { FormEvent, useRef, useState } from "react";
 import { Citations } from "./Citations";
 import { EvidencePanel } from "./EvidencePanel";
 import type { Citation, Verification } from "@/lib/types";
+import { getBrand } from "@/lib/brand";
 
 type Message = {
   id: string;
@@ -32,6 +33,7 @@ const SUGGESTIONS = [
 ];
 
 export function Chat() {
+  const brand = getBrand();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -102,12 +104,12 @@ export function Chat() {
           <div className="flex flex-1 flex-col justify-center gap-10">
             <div className="max-w-xl">
               <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-                Nordlicht Labs · employee handbook
+                {brand.org} · {brand.corpusLabel}
               </p>
               <h1 className="mt-3 font-serif text-[2.35rem] leading-[1.15] tracking-tight text-zinc-900 dark:text-zinc-50">
-                Ask the handbook.
+                {brand.tagline}
                 <br />
-                Get the source.
+                {brand.taglineLine2}
               </h1>
               <p className="mt-4 max-w-md text-[15px] leading-relaxed text-zinc-500 dark:text-zinc-400">
                 Document-grounded answers only — not a general chatbot. After
@@ -238,13 +240,14 @@ export function Chat() {
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-35 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+              className="brand-ask rounded-lg px-3.5 py-2 text-sm font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-35"
+              style={{ backgroundColor: "var(--brand-accent)" }}
             >
               Ask
             </button>
           </div>
           <p className="mt-2.5 text-[11px] text-zinc-400">
-            Demo corpus only — not legal or HR advice.
+            {brand.footerNote}
           </p>
         </form>
       </div>
