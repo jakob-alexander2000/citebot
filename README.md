@@ -18,7 +18,7 @@ First question triggers one-time ingest (embeddings cached under `.cache/`). Opt
 
 ## Cost / keys
 
-- Uses **Gemini Flash** (`gemini-2.5-flash`) + `gemini-embedding-001` — cheap enough for a portfolio demo; AI Studio free tier usually covers light traffic.
+- Uses **Gemini Flash** (`gemini-3.8-flash`) + `gemini-embedding-001` — cheap enough for a portfolio demo; AI Studio free tier usually covers light traffic.
 - Put `GEMINI_API_KEY` only in `.env.local` or Vercel Environment Variables (server-only). **Never commit keys.** Prefer a dedicated AI Studio key with a spend alert if billing is enabled.
 - Do not prefix with `NEXT_PUBLIC_` — the key must stay on the server (`/api/chat`).
 
@@ -29,7 +29,7 @@ corpus/*.md  →  chunk  →  Gemini embeddings (gemini-embedding-001)
                               ↓
                      local JSON vector cache (.cache/embeddings-gemini-v2.json)
                               ↓
-question → embed → cosine top-k → gemini-2.5-flash answer + citation chips
+question → embed → cosine top-k → gemini-3.8-flash answer + citation chips
 ```
 
 - **App:** Next.js App Router, TypeScript, Tailwind
