@@ -6,7 +6,8 @@ export function generateMetadata() {
   const brand = getBrand();
   return {
     title: `Verify harness · ${brand.name}`,
-    description: `How ${brand.name} checks its own answers against retrieved handbook chunks — a hiring-manager writeup.`,
+    description:
+      "How CiteBot checks its own answers against retrieved handbook chunks — problem, harness, how to try.",
   };
 }
 
@@ -17,7 +18,7 @@ export default function HarnessPage() {
       <SiteHeader active="harness" />
       <article className="mx-auto w-full max-w-2xl px-4 pb-16 pt-10 sm:px-6">
         <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-          Portfolio note · verify harness
+          Hire writeup · verify harness
         </p>
         <h1 className="mt-3 font-serif text-[2.35rem] leading-[1.15] tracking-tight text-zinc-900 dark:text-zinc-50">
           An agent that checks its own work.
@@ -38,7 +39,8 @@ export default function HarnessPage() {
             RAG demos often stop at “here are some sources.” Citation chips can
             look authoritative while the prose quietly drifts. Hiring managers
             (and users) need a visible check that the answer actually survived
-            contact with the evidence — not a confidence slider.
+            contact with the evidence — not a confidence slider, not a parallel
+            “judge agent” theater.
           </p>
         </section>
 
@@ -58,11 +60,11 @@ export default function HarnessPage() {
             <li>
               Render an evidence panel under the sources — pass / fail /
               unsupported with a short evidence note. Same path for every
-              answer; no parallel “judge agent” theater.
+              answer.
             </li>
           </ol>
           <p className="text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">
-            See{" "}
+            Drive / verify steps live in{" "}
             <Link
               href="https://github.com/jakob-alexander2000/citebot/blob/main/FEATURE_MAP.md"
               className="underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900 dark:decoration-zinc-600 dark:hover:decoration-zinc-300"
@@ -70,8 +72,17 @@ export default function HarnessPage() {
               rel="noreferrer"
             >
               FEATURE_MAP.md
+            </Link>
+            . Pair with the cloneable{" "}
+            <Link
+              href="https://github.com/jakob-alexander2000/citebot-evals"
+              className="underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900 dark:decoration-zinc-600 dark:hover:decoration-zinc-300"
+              target="_blank"
+              rel="noreferrer"
+            >
+              citebot-evals
             </Link>{" "}
-            for drive / verify steps.
+            suite (18/18 fixture).
           </p>
         </section>
 
@@ -104,14 +115,22 @@ export default function HarnessPage() {
               <span className="font-medium">fail</span>.
             </li>
           </ul>
-          <p className="pt-2">
+          <div className="flex flex-wrap items-center gap-3 pt-3">
             <Link
               href="/"
               className="inline-flex items-center rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
             >
               Open {brand.name} →
             </Link>
-          </p>
+            <a
+              href="https://github.com/jakob-alexander2000/citebot"
+              className="text-sm font-medium text-zinc-500 transition hover:text-zinc-900 dark:hover:text-zinc-100"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Source →
+            </a>
+          </div>
         </section>
 
         <section className="mt-12 border-t border-zinc-200 pt-6 text-[13px] leading-relaxed text-zinc-500 dark:border-zinc-800">
@@ -123,9 +142,9 @@ export default function HarnessPage() {
             rel="noreferrer"
           >
             Jakob Alex
-          </a>{" "}
-          — white-label via env (see WHITE_LABEL.md). No multi-agent stack, no
-          Electron.
+          </a>
+          . Portfolio bet: verify-its-own-work agent — English demo, one
+          harness, no multi-agent stack.
         </section>
       </article>
     </main>
