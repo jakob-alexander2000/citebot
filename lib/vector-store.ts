@@ -5,12 +5,13 @@ import { TaskType } from "@google/generative-ai";
 import { cosineSimilarity, embedTexts, EMBEDDING_MODEL } from "./embeddings";
 import type { Citation, EmbeddedChunk } from "./types";
 
-/** Gemini embedding cache — do not reuse OpenAI vectors from embeddings.json */
-const CACHE_PATH = path.join(
-  process.cwd(),
-  ".cache",
-  "embeddings-gemini-v2.json",
-);
+/** Writable cache dir: /tmp on Vercel/serverless, .cache locally */
+const CACHE_DIR =
+  process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
+    ? path.join("/tmp", "citebot-cache")
+    : path.join(process.cwd(), ".cache");
+
+const CACHE_PATH = path.join(CACHE_DIR, "embeddings-gemini-v2.json");
 
 type CacheFile = {
   fingerprint: string;
@@ -33,8 +34,12 @@ function readCache(): CacheFile | null {
 }
 
 function writeCache(data: CacheFile): void {
-  fs.mkdirSync(path.dirname(CACHE_PATH), { recursive: true });
-  fs.writeFileSync(CACHE_PATH, JSON.stringify(data));
+  try {
+    fs.mkdirSync(path.dirname(CACHE_PATH), { recursive: true });
+    fs.writeFileSync(CACHE_PATH, JSON.stringify(data));
+  } catch {
+    // Serverless FS can be restricted; in-memory store still works for the warm instance.
+  }
 }
 
 export async function ensureIndex(): Promise<EmbeddedChunk[]> {
