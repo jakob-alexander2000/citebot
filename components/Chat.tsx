@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useRef, useState } from "react";
-import { CitationChip } from "./CitationChip";
+import { Citations } from "./Citations";
 import type { Citation } from "@/lib/types";
 
 type Message = {
@@ -13,11 +14,11 @@ type Message = {
 };
 
 const TOPICS = [
-  { title: "Welcome & culture", desc: "Mission, working hours, how the team works" },
-  { title: "PTO & leave", desc: "Vacation days, sick leave, time off" },
-  { title: "Expenses", desc: "What gets reimbursed and how to submit" },
-  { title: "Tools & security", desc: "Approved tools, secrets, device rules" },
-  { title: "Friday demo day", desc: "When it runs and how slots work" },
+  { title: "Welcome & culture", desc: "Mission, hours, hybrid office" },
+  { title: "PTO & leave", desc: "Vacation, sick leave, parental" },
+  { title: "Expenses", desc: "Reimbursement rules & how to submit" },
+  { title: "Tools & security", desc: "Accounts, secrets, devices" },
+  { title: "Friday demo day", desc: "Format, slots, guests" },
 ];
 
 const SUGGESTIONS = [
@@ -93,87 +94,112 @@ export function Chat() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pb-4 pt-6">
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pb-6 pt-10 sm:px-6">
         {messages.length === 0 ? (
-          <div className="flex flex-1 flex-col justify-center gap-7">
-            <div>
-              <p className="text-sm font-medium uppercase tracking-[0.14em] text-zinc-500">
-                CiteBot · Nordlicht Labs handbook
+          <div className="flex flex-1 flex-col justify-center gap-10">
+            <div className="max-w-xl">
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+                Nordlicht Labs · employee handbook
               </p>
-              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-                Ask the employee handbook. Get the source.
+              <h1 className="mt-3 font-serif text-[2.35rem] leading-[1.15] tracking-tight text-zinc-900 dark:text-zinc-50">
+                Ask the handbook.
+                <br />
+                Get the source.
               </h1>
-              <p className="mt-3 max-w-lg text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Not a general chatbot. CiteBot only answers from a fixed
-                five-document handbook for Nordlicht Labs, a fictional Berlin
-                product studio — grounded answers with source chips. If the
-                handbook doesn&apos;t cover it, the answer says so.
+              <p className="mt-4 max-w-md text-[15px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+                Document-grounded answers only — not a general chatbot. If the
+                handbook doesn&apos;t cover it, CiteBot says so.{" "}
+                <Link
+                  href="/handbook"
+                  className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 transition hover:decoration-zinc-900 dark:text-zinc-100 dark:decoration-zinc-600 dark:hover:decoration-zinc-300"
+                >
+                  Read the corpus
+                </Link>
+                .
               </p>
             </div>
+
             <section>
-              <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-                What&apos;s in the handbook
-              </h2>
-              <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+              <div className="mb-3 flex items-baseline justify-between">
+                <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+                  What&apos;s covered
+                </h2>
+                <Link
+                  href="/handbook"
+                  className="text-xs text-zinc-500 transition hover:text-zinc-900 dark:hover:text-zinc-100"
+                >
+                  Open handbook →
+                </Link>
+              </div>
+              <ul className="grid gap-px overflow-hidden rounded-lg border border-zinc-200 bg-zinc-200 dark:border-zinc-800 dark:bg-zinc-800 sm:grid-cols-2">
                 {TOPICS.map((t) => (
                   <li
                     key={t.title}
-                    className="rounded-xl border border-zinc-200 bg-white px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950"
+                    className="bg-[var(--background)] px-3.5 py-3 dark:bg-zinc-950"
                   >
                     <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                       {t.title}
                     </p>
-                    <p className="text-xs text-zinc-500">{t.desc}</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-zinc-500">
+                      {t.desc}
+                    </p>
                   </li>
                 ))}
               </ul>
             </section>
+
             <section>
-              <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+              <h2 className="mb-3 text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
                 Try asking
               </h2>
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="flex flex-col gap-1.5">
                 {SUGGESTIONS.map((s) => (
                   <button
                     key={s}
                     type="button"
                     onClick={() => void ask(s)}
-                    className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-left text-sm text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-zinc-500"
+                    className="group flex items-center justify-between rounded-lg border border-transparent px-3 py-2.5 text-left text-sm text-zinc-700 transition hover:border-zinc-200 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:border-zinc-800 dark:hover:bg-zinc-900/60"
                   >
-                    {s}
+                    <span>{s}</span>
+                    <span className="text-zinc-300 transition group-hover:text-zinc-500 dark:text-zinc-600">
+                      ↗
+                    </span>
                   </button>
                 ))}
               </div>
             </section>
           </div>
         ) : (
-          <div className="flex flex-1 flex-col gap-4 overflow-y-auto pb-4">
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={
-                  msg.role === "user"
-                    ? "ml-auto max-w-[85%] rounded-2xl bg-zinc-900 px-4 py-3 text-sm text-white dark:bg-zinc-100 dark:text-zinc-900"
-                    : msg.error
-                      ? "max-w-[95%] rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200"
-                      : "max-w-[95%] rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
-                }
-              >
-                <p className="whitespace-pre-wrap leading-relaxed">
-                  {msg.content}
-                </p>
-                {msg.citations && msg.citations.length > 0 ? (
-                  <div className="mt-3 flex flex-wrap gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
-                    {msg.citations.map((c) => (
-                      <CitationChip key={c.id} citation={c} />
-                    ))}
+          <div className="flex flex-1 flex-col gap-6 overflow-y-auto pb-4">
+            {messages.map((msg) =>
+              msg.role === "user" ? (
+                <div key={msg.id} className="flex justify-end">
+                  <div className="max-w-[85%] rounded-2xl rounded-br-md bg-zinc-900 px-4 py-2.5 text-[15px] leading-relaxed text-white dark:bg-zinc-100 dark:text-zinc-900">
+                    {msg.content}
                   </div>
-                ) : null}
-              </div>
-            ))}
+                </div>
+              ) : (
+                <div
+                  key={msg.id}
+                  className={
+                    msg.error
+                      ? "max-w-[95%] rounded-xl border border-red-200/80 bg-red-50/50 px-4 py-3.5 text-[15px] text-red-800 dark:border-red-900/50 dark:bg-red-950/20 dark:text-red-200"
+                      : "max-w-[95%]"
+                  }
+                >
+                  <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-zinc-800 dark:text-zinc-100">
+                    {msg.content}
+                  </p>
+                  {msg.citations && msg.citations.length > 0 ? (
+                    <Citations citations={msg.citations} />
+                  ) : null}
+                </div>
+              ),
+            )}
             {loading ? (
-              <div className="max-w-[95%] rounded-2xl border border-dashed border-zinc-300 px-4 py-3 text-sm text-zinc-500 dark:border-zinc-700">
-                Retrieving sources and drafting an answer…
+              <div className="flex items-center gap-2 text-sm text-zinc-500">
+                <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-zinc-400" />
+                Retrieving sources…
               </div>
             ) : null}
             <div ref={bottomRef} />
@@ -182,25 +208,25 @@ export function Chat() {
 
         <form
           onSubmit={onSubmit}
-          className="sticky bottom-0 mt-auto border-t border-zinc-200 bg-[var(--background)] pt-4 dark:border-zinc-800"
+          className="sticky bottom-0 mt-auto border-t border-zinc-200/80 bg-[var(--background)]/95 pt-4 backdrop-blur-sm dark:border-zinc-800/80"
         >
-          <div className="flex gap-2">
+          <div className="flex items-end gap-2 rounded-xl border border-zinc-200 bg-white p-1.5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] focus-within:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:focus-within:border-zinc-600">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask the handbook — e.g. vacation, expenses, demo day…"
+              placeholder="Ask the handbook…"
               disabled={loading}
-              className="flex-1 rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none ring-zinc-400 placeholder:text-zinc-400 focus:ring-2 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-950 dark:focus:ring-zinc-600"
+              className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-zinc-400 disabled:opacity-60"
             />
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="rounded-xl bg-zinc-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
+              className="rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-35 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
             >
               Ask
             </button>
           </div>
-          <p className="mt-2 text-[11px] text-zinc-400">
+          <p className="mt-2.5 text-[11px] text-zinc-400">
             Demo corpus only — not legal or HR advice.
           </p>
         </form>
