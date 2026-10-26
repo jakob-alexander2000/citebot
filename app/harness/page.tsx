@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SiteHeader } from "@/components/SiteHeader";
+import { EvidenceSnapshot } from "@/components/EvidenceSnapshot";
 import { getBrand } from "@/lib/brand";
 
 export function generateMetadata() {
@@ -7,9 +8,90 @@ export function generateMetadata() {
   return {
     title: `Verify harness · ${brand.name}`,
     description:
-      "How CiteBot checks its own answers against retrieved handbook chunks — problem, harness, how to try.",
+      "How CiteBot checks its own answers against retrieved handbook chunks — architecture, annotated evidence examples, how to try.",
   };
 }
+
+const EXAMPLES = [
+  {
+    id: "grounded",
+    label: "01 · Grounded pass",
+    question: "How many vacation days do full-time employees get?",
+    answer:
+      "Full-time employees receive 30 days of paid vacation per calendar year, plus German public holidays observed in Berlin.",
+    note: "PTO claim lands on the handbook sentence. Hiring skim: green Pass + quote + source title.",
+    summary: "grounded" as const,
+    claims: [
+      {
+        claim:
+          "Full-time employees receive 30 days of paid vacation per calendar year.",
+        verdict: "pass" as const,
+        evidence:
+          'Supported: “Full-time employees receive 30 days of paid vacation per calendar year”',
+        sourceTitle: "Time off and leave",
+      },
+      {
+        claim:
+          "Full-time employees also receive German public holidays observed in Berlin.",
+        verdict: "pass" as const,
+        evidence:
+          'Supported: “plus German public holidays observed in Berlin”',
+        sourceTitle: "Time off and leave",
+      },
+    ],
+  },
+  {
+    id: "mixed",
+    label: "02 · Partial / weak support",
+    question: "Can I expense a new office chair, and are daily team lunches covered?",
+    answer:
+      "Yes — home-office equipment is reimbursed up to €400 per year with manager approval. Daily team lunches are also covered under the meal policy.",
+    note: "One claim is real (€400 equipment). The lunch line is invented — verify marks Unsupported so the mixed summary is visible.",
+    summary: "mixed" as const,
+    claims: [
+      {
+        claim:
+          "Home-office equipment is reimbursed up to €400 per year with prior manager approval.",
+        verdict: "pass" as const,
+        evidence:
+          'Supported: “Home-office equipment up to €400 per year … with prior manager approval”',
+        sourceTitle: "Expense policy",
+      },
+      {
+        claim: "Daily team lunches are covered under the meal policy.",
+        verdict: "unsupported" as const,
+        evidence:
+          "Retrieved expense policy covers client meals (up to €45/person) and home-office gear — not daily team lunches.",
+        sourceTitle: "Expense policy",
+      },
+    ],
+  },
+  {
+    id: "trick",
+    label: "03 · Trick / refusal",
+    question: "What’s our office dog’s name?",
+    answer:
+      "The Nordlicht handbook doesn’t mention an office dog, so I can’t give a name from the docs.",
+    note: "Correct gap → Pass on the refusal. An invented name (“Bruno”) would be Unsupported / Fail — never a quiet Pass.",
+    summary: "grounded" as const,
+    claims: [
+      {
+        claim:
+          "The handbook does not mention an office dog or a dog’s name.",
+        verdict: "pass" as const,
+        evidence:
+          "No retrieved passage names a pet or office dog; refusal matches the gap.",
+      },
+    ],
+  },
+] as const;
+
+const ARCH_STEPS = [
+  { step: "1", title: "Retrieve", body: "Embed the question; pull top-k Nordlicht chunks (cosine)." },
+  { step: "2", title: "Generate", body: "Answer only from those chunks — short, citeable prose." },
+  { step: "3", title: "Claim-split", body: "Verifier breaks the answer into atomic factual claims." },
+  { step: "4", title: "Verify", body: "Each claim vs the same chunks → pass / fail / unsupported." },
+] as const;
 
 export default function HarnessPage() {
   const brand = getBrand();
@@ -24,11 +106,11 @@ export default function HarnessPage() {
           An agent that checks its own work.
         </h1>
         <p className="mt-4 text-[15px] leading-relaxed text-zinc-600 dark:text-zinc-400">
-          {brand.name} answers from a small employee handbook. That alone is
-          table stakes. The interesting part is the second pass: after
-          generation, a shared verify step scores each claim against the same
-          retrieved chunks — pass, fail, or unsupported — and shows the
-          evidence in the UI.
+          {brand.name} answers from a small English employee handbook
+          (Nordlicht Labs). That alone is table stakes. The interesting part is
+          the second pass: after generation, a shared verify step scores each
+          claim against the same retrieved chunks — pass, fail, or unsupported —
+          and shows the evidence in the UI.
         </p>
 
         <section className="mt-10 space-y-3">
@@ -38,33 +120,49 @@ export default function HarnessPage() {
           <p className="text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">
             RAG demos often stop at “here are some sources.” Citation chips can
             look authoritative while the prose quietly drifts. Hiring managers
-            (and users) need a visible check that the answer actually survived
-            contact with the evidence — not a confidence slider, not a parallel
-            “judge agent” theater.
+            need a visible check that the answer survived contact with the
+            evidence — not a confidence slider, not a parallel “judge agent”
+            theater.
           </p>
         </section>
 
-        <section className="mt-10 space-y-3">
+        <section className="mt-10 space-y-4">
           <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
-            Harness
+            Architecture
           </h2>
-          <ol className="list-decimal space-y-2 pl-5 text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">
-            <li>Retrieve top-k handbook chunks (embeddings + cosine).</li>
-            <li>Generate a short answer constrained to that context.</li>
-            <li>
-              Run <code className="font-mono text-[13px]">verifyAnswer</code>{" "}
-              in <code className="font-mono text-[13px]">lib/verify.ts</code>:
-              split the answer into atomic claims; label each against the
-              retrieved passages only.
-            </li>
-            <li>
-              Render an evidence panel under the sources — pass / fail /
-              unsupported with a short evidence note. Same path for every
-              answer.
-            </li>
-          </ol>
           <p className="text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">
-            Drive / verify steps live in{" "}
+            One path for every answer:{" "}
+            <span className="font-medium text-zinc-900 dark:text-zinc-100">
+              claim → retrieve → verify → pass/fail
+            </span>
+            . Generation and verification share the same retrieved set — no
+            second corpus, no hidden judge.
+          </p>
+          <ol className="grid gap-2 sm:grid-cols-2">
+            {ARCH_STEPS.map((s) => (
+              <li
+                key={s.step}
+                className="rounded-xl border border-zinc-200/90 bg-white/50 px-3.5 py-3 dark:border-zinc-800 dark:bg-zinc-950/30"
+              >
+                <p className="font-mono text-[10px] tabular-nums text-zinc-400">
+                  {s.step}
+                </p>
+                <p className="mt-1 text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                  {s.title}
+                </p>
+                <p className="mt-1 text-[13px] leading-relaxed text-zinc-600 dark:text-zinc-400">
+                  {s.body}
+                </p>
+              </li>
+            ))}
+          </ol>
+          <p className="text-[13px] leading-relaxed text-zinc-500">
+            Code:{" "}
+            <code className="font-mono text-[12px]">lib/verify.ts</code> ·{" "}
+            <code className="font-mono text-[12px]">
+              components/EvidencePanel.tsx
+            </code>{" "}
+            · map in{" "}
             <Link
               href="https://github.com/jakob-alexander2000/citebot/blob/main/FEATURE_MAP.md"
               className="underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900 dark:decoration-zinc-600 dark:hover:decoration-zinc-300"
@@ -73,7 +171,7 @@ export default function HarnessPage() {
             >
               FEATURE_MAP.md
             </Link>
-            . Pair with the cloneable{" "}
+            . Pair with{" "}
             <Link
               href="https://github.com/jakob-alexander2000/citebot-evals"
               className="underline decoration-zinc-300 underline-offset-4 hover:decoration-zinc-900 dark:decoration-zinc-600 dark:hover:decoration-zinc-300"
@@ -82,37 +180,81 @@ export default function HarnessPage() {
             >
               citebot-evals
             </Link>{" "}
-            suite (18/18 fixture).
+            (18/18 fixture).
           </p>
         </section>
 
-        <section className="mt-10 space-y-3">
+        <section className="mt-12 space-y-8">
+          <div className="space-y-2">
+            <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+              Evidence examples
+            </h2>
+            <p className="text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">
+              Three panels a hiring manager can skim in ~90 seconds. Faithful
+              recreations of the live Evidence UI on the Nordlicht handbook —
+              same chrome, same verdict language.
+            </p>
+          </div>
+
+          {EXAMPLES.map((ex) => (
+            <figure
+              key={ex.id}
+              id={ex.id}
+              className="scroll-mt-8 space-y-3 border-t border-zinc-200/80 pt-8 dark:border-zinc-800/80"
+            >
+              <figcaption className="space-y-2">
+                <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+                  {ex.label}
+                </p>
+                <p className="text-[13px] leading-relaxed text-zinc-500">
+                  <span className="font-medium text-zinc-800 dark:text-zinc-200">
+                    Q ·{" "}
+                  </span>
+                  {ex.question}
+                </p>
+                <p className="rounded-lg border border-zinc-200/80 bg-zinc-50/80 px-3 py-2 text-[13px] leading-relaxed text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900/40 dark:text-zinc-300">
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                    A ·{" "}
+                  </span>
+                  {ex.answer}
+                </p>
+              </figcaption>
+              <EvidenceSnapshot summary={ex.summary} claims={[...ex.claims]} />
+              <p className="text-[13px] leading-relaxed text-zinc-500">
+                {ex.note}
+              </p>
+            </figure>
+          ))}
+        </section>
+
+        <section className="mt-12 space-y-3">
           <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
-            How to try
+            How to try live
           </h2>
           <ul className="space-y-2 text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">
             <li>
               <span className="font-medium text-zinc-900 dark:text-zinc-100">
                 Grounded:
               </span>{" "}
-              ask{" "}
-              <em>“How many vacation days do full-time employees get?”</em> —
-              evidence panel should show{" "}
-              <span className="font-medium">pass</span> on the “30 days” claim
-              with a PTO passage.
+              ask the vacation question — expect{" "}
+              <span className="font-medium">pass</span> on “30 days” with a PTO
+              passage.
             </li>
             <li>
               <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                Unsupported / refuse:
+                Mixed:
               </span>{" "}
-              ask{" "}
-              <em>“What’s our office dog’s name?”</em> — {brand.name} should
-              say it isn’t in the handbook; the verify step should mark the
-              refusal as{" "}
-              <span className="font-medium">pass</span> (correct gap) or any
-              invented detail as{" "}
-              <span className="font-medium">unsupported</span> /{" "}
-              <span className="font-medium">fail</span>.
+              ask about an office chair <em>and</em> daily team lunches — chair
+              should <span className="font-medium">pass</span>; lunch should be{" "}
+              <span className="font-medium">unsupported</span>.
+            </li>
+            <li>
+              <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                Trick:
+              </span>{" "}
+              ask for the office dog’s name — refusal should{" "}
+              <span className="font-medium">pass</span> as a real gap; any
+              invented name must not.
             </li>
           </ul>
           <div className="flex flex-wrap items-center gap-3 pt-3">
@@ -143,8 +285,8 @@ export default function HarnessPage() {
           >
             Jakob Alex
           </a>
-          . Portfolio bet: verify-its-own-work agent — English demo, one
-          harness, no multi-agent stack.
+          . Portfolio bet: verify-its-own-work agent — English Nordlicht demo,
+          one harness, no multi-agent stack.
         </section>
       </article>
     </main>
