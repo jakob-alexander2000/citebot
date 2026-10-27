@@ -1,4 +1,4 @@
-import { CHAT_MODEL, getGemini } from "./embeddings";
+import { generateWithFallback, ProviderUnavailableError } from "./llm";
 import type {
   Citation,
   ClaimVerdict,
@@ -98,15 +98,6 @@ export async function verifyAnswer(
     )
     .join("\n\n");
 
-  const client = getGemini();
-  const model = client.getGenerativeModel({
-    model: CHAT_MODEL,
-    generationConfig: {
-      temperature: 0,
-      responseMimeType: "application/json",
-    },
-  });
-
   const brand = getBrand();
   const prompt = `You are the verify step for ${brand.name} (handbook RAG).
 Split the ASSISTANT ANSWER into atomic factual claims (1–6). For each claim, check ONLY the RETRIEVED CONTEXT below.
@@ -130,8 +121,12 @@ RETRIEVED CONTEXT:
 ${context || "(no retrieved passages)"}`;
 
   try {
-    const result = await model.generateContent(prompt);
-    const text = result.response.text()?.trim() || "";
+    const result = await generateWithFallback({
+      prompt,
+      json: true,
+      temperature: 0,
+    });
+    const text = result.text.trim();
     const claims = parseVerifierClaims(text, citations);
     if (claims.length === 0) {
       return {
@@ -147,12 +142,25 @@ ${context || "(no retrieved passages)"}`;
     }
     return { summary: summarizeClaims(claims), claims };
   } catch (err) {
+    if (err instanceof ProviderUnavailableError) {
+      return {
+        summary: "unavailable",
+        claims: [
+          {
+            claim: "Verification could not run.",
+            verdict: "unsupported",
+            evidence:
+              "The AI provider is temporarily unavailable. Please try again in a moment.",
+          },
+        ],
+      };
+    }
     const message = err instanceof Error ? err.message : "verify failed";
     return {
-      summary: "ungrounded",
+      summary: "unavailable",
       claims: [
         {
-          claim: "Verification step errored.",
+          claim: "Verification could not run.",
           verdict: "unsupported",
           evidence: message,
         },

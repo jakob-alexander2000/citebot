@@ -1,21 +1,14 @@
 import { runAgentLoop } from "./agent";
 import { loadCorpusChunks } from "./corpus";
-import { CHAT_MODEL, getGemini } from "./embeddings";
+import { generateWithFallback } from "./llm";
 import type { ChatResponse } from "./types";
 import { ensureIndex, retrieve } from "./vector-store";
 import { verifyAnswer } from "./verify";
 
-async function geminiGenerate(prompt: string): Promise<string> {
-  const client = getGemini();
-  const model = client.getGenerativeModel({
-    model: CHAT_MODEL,
-    generationConfig: {
-      temperature: 0.2,
-      responseMimeType: "application/json",
-    },
-  });
-  const result = await model.generateContent(prompt);
-  return result.response.text()?.trim() ?? "";
+function clipDetail(text: string, max = 180): string {
+  const flat = text.replace(/\s+/g, " ").trim();
+  if (flat.length <= max) return flat;
+  return `${flat.slice(0, max - 1).trimEnd()}…`;
 }
 
 /**
@@ -34,10 +27,21 @@ export async function answerWithCitations(
   );
   const chunks = await chunksPromise;
 
-  return runAgentLoop({
+  let usedFallback = false;
+  const generate = async (prompt: string): Promise<string> => {
+    const result = await generateWithFallback({
+      prompt,
+      json: true,
+      temperature: 0.2,
+    });
+    if (result.viaFallback) usedFallback = true;
+    return result.text;
+  };
+
+  const response = await runAgentLoop({
     question,
     chunks,
-    generate: geminiGenerate,
+    generate,
     search: async (query, topK = 4) => {
       const failure = await warmIndex;
       if (failure) throw failure;
@@ -45,4 +49,13 @@ export async function answerWithCitations(
     },
     verify: verifyAnswer,
   });
+
+  if (usedFallback) {
+    const draft = response.steps.find((step) => step.kind === "draft");
+    if (draft) {
+      draft.detail = clipDetail(`${draft.detail} · via OpenAI fallback`);
+    }
+  }
+
+  return response;
 }
