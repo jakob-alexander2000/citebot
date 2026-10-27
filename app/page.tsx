@@ -131,6 +131,13 @@ function CraftHome({
         <p className="mt-2 text-[13px] leading-relaxed text-zinc-500">{copy.homeVerifyBody}</p>
         <p className="mt-2 text-[13px]">
           <Link
+            href="/onboard"
+            className="text-zinc-600 underline decoration-zinc-300 underline-offset-4 dark:text-zinc-400 dark:decoration-zinc-600"
+          >
+            Client onboard
+          </Link>
+          <span className="text-zinc-400"> · </span>
+          <Link
             href="/harness"
             className="text-zinc-600 underline decoration-zinc-300 underline-offset-4 dark:text-zinc-400 dark:decoration-zinc-600"
           >

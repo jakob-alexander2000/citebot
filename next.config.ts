@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
     "/ask": ["./corpus/**/*", "./examples/de-qm-corpus/**/*", "./examples/nordlicht-corpus/**/*"],
     "/handbook": ["./corpus/**/*", "./examples/de-qm-corpus/**/*", "./examples/nordlicht-corpus/**/*"],
     "/api/chat": ["./corpus/**/*", "./examples/de-qm-corpus/**/*", "./examples/nordlicht-corpus/**/*"],
+    "/onboard": [
+      "./examples/nordlicht-corpus/**/*",
+      "./examples/de-qm-corpus/**/*",
+      "./docs/onboard.md",
+    ],
+    "/onboard/run": ["./docs/onboard.md"],
   },
   turbopack: {
     rules: {

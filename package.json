@@ -8,8 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "ingest": "tsx scripts/ingest.ts",
-    "test": "tsx --test tests/verify.test.ts tests/tools.test.ts tests/agent-loop.test.ts tests/llm.test.ts tests/locale.test.ts tests/qm.test.ts tests/brand.test.ts tests/analytics.test.ts",
-    "test:ci": "tsx --test tests/verify.test.ts tests/tools.test.ts tests/agent-loop.test.ts tests/llm.test.ts tests/locale.test.ts tests/qm.test.ts tests/brand.test.ts tests/analytics.test.ts"
+    "test": "tsx --test tests/verify.test.ts tests/tools.test.ts tests/agent-loop.test.ts tests/llm.test.ts tests/locale.test.ts tests/qm.test.ts tests/brand.test.ts tests/analytics.test.ts tests/onboard.test.ts",
+    "test:ci": "tsx --test tests/verify.test.ts tests/tools.test.ts tests/agent-loop.test.ts tests/llm.test.ts tests/locale.test.ts tests/qm.test.ts tests/brand.test.ts tests/analytics.test.ts tests/onboard.test.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

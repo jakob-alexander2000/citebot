@@ -51,6 +51,17 @@ Each question is plan → at most three corpus tools → draft → the verify ha
 2. With a key: ask a demo question and confirm **Steps** lists `search_handbook` (or a sibling tool) and the Evidence panel shows pass / fail in the active language.
 3. CI: `.github/workflows/ci.yml`. A separate citebot-evals job still runs; it is not part of this product.
 
+## CiteBot onboard path
+
+**What it does**  
+On the CiteBot skin, `/onboard` is a short client setup: which sample pages and handbook tools are on, a system prompt, then the same ask loop and verify step. A banner shows a passed check, a refusal, or a failed check. The handoff download lists sources, tool calls, verify, and the time. `/onboard/walkthrough` is an English page with an English script and a German script. How to run it: [docs/onboard.md](./docs/onboard.md).
+
+**How to verify**
+
+1. `NEXT_PUBLIC_BRAND_NAME=CiteBot npm run dev` and open `/onboard`. The header has Onboard and no DE|EN switch.
+2. Without that name, the header does not link to Onboard, and `/ask` is unchanged.
+3. `npm test` covers the cookie, the tool filter, the guardrail label, and the handoff file.
+
 ## Intentionally not built
 
 - Multi-agent “judge swarm”

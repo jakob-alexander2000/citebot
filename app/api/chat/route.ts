@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { brandSkin } from "@/lib/brand";
 import { getLocaleState } from "@/lib/request-locale";
 import type { Locale } from "@/lib/locale";
 import { ProviderUnavailableError } from "@/lib/llm";
-import { answerWithCitations } from "@/lib/rag";
+import { parseOnboardConfig, shouldApplyOnboard } from "@/lib/onboard";
+import { answerOnboard, answerWithCitations } from "@/lib/rag";
 
 const bodySchema = z.object({
   question: z.string().trim().min(1).max(1000),
   locale: z.enum(["de", "en"]).optional(),
+  /** Present only from the CiteBot onboard page. Ignored on other skins. */
+  onboard: z.unknown().optional(),
 });
 
 function apiError(locale: Locale, kind: "question" | "key" | "down"): string {
@@ -37,11 +41,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: apiError(locale, "question") }, { status: 400 });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    const useOnboard =
+      parsed.data.onboard !== undefined && shouldApplyOnboard(brandSkin());
+    if (!process.env.GEMINI_API_KEY && !useOnboard) {
       return NextResponse.json({ error: apiError(locale, "key") }, { status: 503 });
     }
 
-    const result = await answerWithCitations(parsed.data.question, locale);
+    const result = useOnboard
+      ? await answerOnboard(parsed.data.question, parseOnboardConfig(parsed.data.onboard))
+      : await answerWithCitations(parsed.data.question, locale);
     return NextResponse.json(result);
   } catch (err) {
     if (err instanceof ProviderUnavailableError) {

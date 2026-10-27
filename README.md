@@ -14,6 +14,12 @@ The header switch is **DE | EN** on Grounded Docs. A deploy branded CiteBot is E
 - After a choice: the `gd_locale` cookie, mirrored to `localStorage`, so a reload stays on that language.
 - UI chrome, topic chips, the model prompt, the answer, and the Evidence narrative follow the active language.
 
+## CiteBot onboard path
+
+With `NEXT_PUBLIC_BRAND_NAME=CiteBot`, open `/onboard`. Set the sample pages and tools, ask, read the verify banner, and download a handoff. The English and German script is at `/onboard/walkthrough`. How to run it: [docs/onboard.md](./docs/onboard.md).
+
+That header link is only on the CiteBot skin. The Grounded Docs DE|EN shell is unchanged, and `/ask` still uses the handbook for the deploy.
+
 ## Demo questions
 
 Six screenshot questions (3 DE, 3 EN) are in [docs/demo-questions.md](./docs/demo-questions.md). They are also the chips on `/ask`.
@@ -142,13 +148,14 @@ Details: [`corpus/README.md`](./corpus/README.md).
 | `tests/fixtures/qm-claims.json` | German and English verifier claims |
 | `tests/llm.test.ts` | Gemini retry / OpenAI fallback classification |
 | `tests/analytics.test.ts` | Event schema, chip-order assignment, JSONL log |
+| `tests/onboard.test.ts` | Onboard config, tool filter, guardrail, handoff |
 
 GitHub Actions (`.github/workflows/ci.yml`) runs those tests and `npm run build`. The workflow still runs the separate [citebot-evals](https://github.com/jakob-alexander2000/citebot-evals) fixture job. That repository is not part of this product.
 
 ## Layout
 
 ```
-app/                 # home, /ask, /handbook, /harness, /growth, /api/chat, /api/events
+app/                 # home, /ask, /handbook, /harness, /onboard, /growth, /api/chat, /api/events
 components/          # chat, language switch, evidence, handbook
 lib/                 # locale, agent loop, tools, rag, verify
 corpus/de corpus/en  # QM handbook

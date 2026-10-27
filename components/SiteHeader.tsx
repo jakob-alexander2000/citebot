@@ -5,7 +5,7 @@ import type { Locale } from "@/lib/locale";
 import { ui } from "@/lib/messages";
 import { LocaleSwitch } from "./LocaleSwitch";
 
-type NavId = "home" | "chat" | "handbook" | "harness";
+type NavId = "home" | "chat" | "handbook" | "harness" | "onboard";
 
 type Props = {
   active?: NavId;
@@ -78,6 +78,11 @@ export function SiteHeader({ active, locale, source }: Props) {
             <NavLink href="/harness" active={active === "harness"}>
               {copy.navHarness}
             </NavLink>
+            {craft ? (
+              <NavLink href="/onboard" active={active === "onboard"}>
+                Onboard
+              </NavLink>
+            ) : null}
           </nav>
         </div>
         <div className="flex items-center gap-3">
@@ -92,6 +97,19 @@ export function SiteHeader({ active, locale, source }: Props) {
           >
             {copy.navAsk}
           </Link>
+          {craft ? (
+            <Link
+              href="/onboard"
+              aria-current={active === "onboard" ? "page" : undefined}
+              className={
+                active === "onboard"
+                  ? "text-xs font-medium text-zinc-900 sm:hidden dark:text-zinc-100"
+                  : "text-xs text-zinc-500 transition hover:text-zinc-900 sm:hidden dark:hover:text-zinc-100"
+              }
+            >
+              Onboard
+            </Link>
+          ) : null}
           <Link
             href="/harness"
             aria-current={active === "harness" ? "page" : undefined}
