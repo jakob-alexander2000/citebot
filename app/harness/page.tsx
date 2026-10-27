@@ -19,7 +19,7 @@ const EXAMPLES = [
     question: "How many vacation days do full-time employees get?",
     answer:
       "Full-time employees receive 30 days of paid vacation per calendar year, plus German public holidays observed in Berlin.",
-    note: "PTO claim lands on the handbook sentence. Hiring skim: green Pass + quote + source title.",
+    note: "The PTO claim lands on the handbook sentence: green Pass, the quote, and the source title.",
     summary: "grounded" as const,
     claims: [
       {
@@ -107,17 +107,16 @@ export default function HarnessPage() {
       <SiteHeader active="harness" />
       <article className="mx-auto w-full max-w-2xl px-4 pb-16 pt-10 sm:px-6">
         <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-          Hire writeup · verify harness
+          Selected work · verify harness
         </p>
         <h1 className="mt-3 font-serif text-[2.35rem] leading-[1.15] tracking-tight text-zinc-900 dark:text-zinc-50">
           An agent that checks its own work.
         </h1>
         <p className="mt-4 text-[15px] leading-relaxed text-zinc-600 dark:text-zinc-400">
           {brand.name} answers from a small English employee handbook
-          (Nordlicht Labs). That alone is table stakes. The interesting part is
-          the second pass: after generation, a shared verify step scores each
-          claim against the same retrieved chunks — pass, fail, or unsupported —
-          and shows the evidence in the UI.
+          (Nordlicht Labs). After the draft, a shared verify step scores each
+          claim against the same retrieved passages — pass, fail, or
+          unsupported — and shows the evidence in the UI.
         </p>
 
         <section className="mt-10 space-y-3">
@@ -126,10 +125,9 @@ export default function HarnessPage() {
           </h2>
           <p className="text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">
             RAG demos often stop at “here are some sources.” Citation chips can
-            look authoritative while the prose quietly drifts. Hiring managers
-            need a visible check that the answer survived contact with the
-            evidence — not a confidence slider, not a parallel “judge agent”
-            theater.
+            look authoritative while the prose quietly drifts. Verify scores
+            each claim against the retrieved passages and shows that result in
+            the Evidence panel.
           </p>
         </section>
 
@@ -225,8 +223,7 @@ export default function HarnessPage() {
               Evidence examples
             </h2>
             <p className="text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">
-              Three panels a hiring manager can skim in ~90 seconds. Faithful
-              recreations of the live Evidence UI on the Nordlicht handbook —
+              Three panels of the live Evidence UI on the Nordlicht handbook —
               same chrome, same verdict language.
             </p>
           </div>
@@ -294,10 +291,10 @@ export default function HarnessPage() {
           </ul>
           <div className="flex flex-wrap items-center gap-3 pt-3">
             <Link
-              href="/"
+              href="/ask"
               className="inline-flex items-center rounded-lg bg-zinc-900 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white"
             >
-              Open {brand.name} →
+              Ask {brand.name} →
             </Link>
             <a
               href="https://github.com/jakob-alexander2000/citebot"
@@ -320,8 +317,8 @@ export default function HarnessPage() {
           >
             Jakob Alex
           </a>
-          . Portfolio bet: verify-its-own-work agent — English Nordlicht demo,
-          one harness, no multi-agent stack.
+          . English Nordlicht handbook. One verify harness, no multi-agent
+          stack.
         </section>
       </article>
     </main>

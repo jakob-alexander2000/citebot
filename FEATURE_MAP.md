@@ -29,7 +29,7 @@ A correct “not in the handbook” refusal counts as `pass` (the gap is real). 
 
 **How to drive**
 
-1. Ask a handbook question on `/` (e.g. vacation days).
+1. Ask a handbook question on `/ask` (e.g. vacation days).
 2. Expand a source pill — handbook passage still works.
 3. Read the Evidence panel: claims + pass/fail/unsupported.
 
