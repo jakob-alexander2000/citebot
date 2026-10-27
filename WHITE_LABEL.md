@@ -1,6 +1,6 @@
-# White-label CiteBot — client deploy (<30 min)
+# Client deploy
 
-Same app, different brand + corpus. One Vercel project per client (`{slug}.vercel.app`).
+Same app, different brand and corpus. One project per client.
 
 ## 1. Clone (or fork)
 
@@ -24,17 +24,17 @@ Copy [`examples/acme-handbook.env`](./examples/acme-handbook.env) → `.env.loca
 | `NEXT_PUBLIC_BRAND_LOGO_URL` | `/logo.png` (file in `public/`) |
 | `GEMINI_API_KEY` | Google AI Studio key |
 
-Defaults without these = the CiteBot / Nordlicht demo.
+Defaults without these = Grounded Docs and the Hartmann Fertigung QM handbook. Tagline, corpus label, footer, and description follow the DE/EN switch unless you set them here (a set value is used for both languages).
 
 ## 3. Swap corpus
 
 ```bash
-rm corpus/*.md corpus/*.pdf
-# drop client .md / .pdf into corpus/
+# bilingual: replace corpus/de and corpus/en
+# single language for both toggles: put files in corpus/ (not inside de/ or en/)
 rm -rf .cache && npm run ingest
 ```
 
-See [`corpus/README.md`](./corpus/README.md). Markdown and PDF both work; drop files into `corpus/` and re-ingest.
+See [`corpus/README.md`](./corpus/README.md). Files in `de/` and `en/` are retrieved only for that language. Files in the corpus root are included for both. Markdown and PDF both work.
 
 ## 4. Deploy on Vercel
 
@@ -52,12 +52,12 @@ URL: `https://{project-slug}.vercel.app`.
 
 ## 5. Verify
 
-1. Open the live URL — header shows the client name + accent, not “CiteBot”.
-2. Open **Ask** (`/ask`) and ask a question from their docs; citation chips + Evidence panel still work.
-3. `/handbook` lists their markdown; `/harness` explains the verify loop.
+1. Open the live URL — the header shows the client name and accent.
+2. Switch DE/EN. Ask a question from their docs; citation chips and the Evidence panel follow that language.
+3. `/handbook` lists the documents for the active language. `/harness` explains the verify loop.
 
-Kept from the base product: Gemini RAG, verify harness, handbook browser.
+Kept: Gemini chat with OpenAI fallback, verify harness, handbook browser.
 
-## German QM sample
+## Sample corpora
 
-Short Arbeitsschutz/QM markdown lives in [`examples/de-qm-corpus/`](./examples/de-qm-corpus/). Use it for a second Vercel project (different `NEXT_PUBLIC_BRAND_*`, `CORPUS_DIR=examples/de-qm-corpus` or copy into `corpus/`).
+The product handbook is [`corpus/de`](./corpus/de) and [`corpus/en`](./corpus/en). A shorter German sketch remains in [`examples/de-qm-corpus/`](./examples/de-qm-corpus/) if you point `CORPUS_DIR` at a single small folder.

@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Markdown } from "./Markdown";
 import { getBrand } from "@/lib/brand";
+import type { Locale } from "@/lib/locale";
+import { ui } from "@/lib/messages";
 
 export type HandbookDocPayload = {
   slug: string;
@@ -14,8 +16,15 @@ export type HandbookDocPayload = {
   format?: "md" | "pdf";
 };
 
-export function HandbookBrowser({ docs }: { docs: HandbookDocPayload[] }) {
-  const brand = getBrand();
+export function HandbookBrowser({
+  docs,
+  locale = "en",
+}: {
+  docs: HandbookDocPayload[];
+  locale?: Locale;
+}) {
+  const brand = getBrand(locale);
+  const copy = ui(locale);
   const [activeSlug, setActiveSlug] = useState(docs[0]?.slug ?? "");
   const active = useMemo(
     () => docs.find((d) => d.slug === activeSlug) ?? docs[0] ?? null,
@@ -23,7 +32,7 @@ export function HandbookBrowser({ docs }: { docs: HandbookDocPayload[] }) {
   );
 
   if (!docs.length) {
-    return <p className="text-sm text-zinc-500">No handbook documents found.</p>;
+    return <p className="text-sm text-zinc-500">{copy.noDocs}</p>;
   }
 
   return (
@@ -31,19 +40,18 @@ export function HandbookBrowser({ docs }: { docs: HandbookDocPayload[] }) {
       <aside className="mb-8 w-full shrink-0 lg:mb-0 lg:w-56">
         <div className="mb-4">
           <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
-            Corpus
+            {copy.handbookKicker}
           </p>
           <h1 className="mt-1 font-serif text-2xl tracking-tight text-zinc-900 dark:text-zinc-50">
-            Handbook
+            {copy.handbookTitle}
           </h1>
           <p className="mt-2 text-xs leading-relaxed text-zinc-500">
-            The {docs.length} document{docs.length === 1 ? "" : "s"}{" "}
-            {brand.name} retrieves from. Ask them on the{" "}
+            {copy.handbookIntro(docs.length, brand.name)}{" "}
             <Link
               href="/ask"
               className="text-zinc-800 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-200"
             >
-              chat
+              {copy.askInChat}
             </Link>
             .
           </p>

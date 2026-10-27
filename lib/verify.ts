@@ -1,3 +1,4 @@
+import type { Locale } from "./locale";
 import { generateWithFallback, ProviderUnavailableError } from "./llm";
 import type {
   Citation,
@@ -73,19 +74,46 @@ export function parseVerifierClaims(
  * handbook chunks that grounded generation. Returns per-claim pass / fail /
  * unsupported — not a cosmetic confidence score.
  */
+function verifyFallback(locale: Locale) {
+  if (locale === "de") {
+    return {
+      emptyClaim: "(leere Antwort)",
+      emptyEvidence: "Kein Antworttext zum Prüfen.",
+      parseClaim: "Der Nachweis konnte die Aussagenliste nicht lesen.",
+      parseEvidence: "Der Prüfschritt lieferte leeres oder ungültiges JSON.",
+      downClaim: "Der Nachweis konnte nicht laufen.",
+      downEvidence:
+        "Der KI-Anbieter ist vorübergehend nicht erreichbar. Bitte versuchen Sie es gleich noch einmal.",
+      failed: "Nachweis fehlgeschlagen",
+    };
+  }
+  return {
+    emptyClaim: "(empty answer)",
+    emptyEvidence: "No answer text to verify.",
+    parseClaim: "Verification could not parse claim list.",
+    parseEvidence: "Verifier returned empty or invalid JSON.",
+    downClaim: "Verification could not run.",
+    downEvidence:
+      "The AI provider is temporarily unavailable. Please try again in a moment.",
+    failed: "verify failed",
+  };
+}
+
 export async function verifyAnswer(
   question: string,
   answer: string,
   citations: Citation[],
+  locale: Locale = "en",
 ): Promise<Verification> {
+  const copy = verifyFallback(locale);
   if (!answer.trim()) {
     return {
       summary: "ungrounded",
       claims: [
         {
-          claim: "(empty answer)",
+          claim: copy.emptyClaim,
           verdict: "unsupported",
-          evidence: "No answer text to verify.",
+          evidence: copy.emptyEvidence,
         },
       ],
     };
@@ -98,9 +126,14 @@ export async function verifyAnswer(
     )
     .join("\n\n");
 
-  const brand = getBrand();
+  const brand = getBrand(locale);
+  const languageLine =
+    locale === "de"
+      ? "Schreibe claim und evidence auf Deutsch. Die Werte für verdict bleiben pass, fail oder unsupported."
+      : "Write claim and evidence in English. Verdict values stay pass, fail, or unsupported.";
   const prompt = `You are the verify step for ${brand.name} (handbook RAG).
 Split the ASSISTANT ANSWER into atomic factual claims (1–6). For each claim, check ONLY the RETRIEVED CONTEXT below.
+${languageLine}
 
 Verdict rules:
 - "pass": the claim is directly supported by a passage in the context (quote a short phrase in evidence; set citationId to that chunk's id).
@@ -133,9 +166,9 @@ ${context || "(no retrieved passages)"}`;
         summary: "ungrounded",
         claims: [
           {
-            claim: "Verification could not parse claim list.",
+            claim: copy.parseClaim,
             verdict: "unsupported",
-            evidence: "Verifier returned empty or invalid JSON.",
+            evidence: copy.parseEvidence,
           },
         ],
       };
@@ -147,20 +180,19 @@ ${context || "(no retrieved passages)"}`;
         summary: "unavailable",
         claims: [
           {
-            claim: "Verification could not run.",
+            claim: copy.downClaim,
             verdict: "unsupported",
-            evidence:
-              "The AI provider is temporarily unavailable. Please try again in a moment.",
+            evidence: copy.downEvidence,
           },
         ],
       };
     }
-    const message = err instanceof Error ? err.message : "verify failed";
+    const message = err instanceof Error ? err.message : copy.failed;
     return {
       summary: "unavailable",
       claims: [
         {
-          claim: "Verification could not run.",
+          claim: copy.downClaim,
           verdict: "unsupported",
           evidence: message,
         },

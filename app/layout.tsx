@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import { getBrand } from "@/lib/brand";
+import { ui } from "@/lib/messages";
+import { getLocaleState } from "@/lib/request-locale";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -19,20 +22,25 @@ const instrumentSerif = Instrument_Serif({
   weight: "400",
 });
 
-export function generateMetadata(): Metadata {
-  const brand = getBrand();
+/** Locale comes from the request cookie and Accept-Language. */
+export const instant = false;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { locale } = await getLocaleState();
+  const brand = getBrand(locale);
   return {
-    title: `${brand.name} — RAG with citations`,
+    title: ui(locale).metaTitle(brand.name),
     description: brand.description,
   };
 }
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
-  const brand = getBrand();
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const { locale } = await getLocaleState();
+  const brand = getBrand(locale);
 
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} h-full antialiased`}
       style={{ ["--brand-accent" as string]: brand.accent }}
     >

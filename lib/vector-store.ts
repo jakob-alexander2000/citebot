@@ -3,6 +3,7 @@ import path from "node:path";
 import { corpusFingerprint, loadCorpusChunks } from "./corpus";
 import { TaskType } from "@google/generative-ai";
 import { cosineSimilarity, embedTexts, EMBEDDING_MODEL } from "./embeddings";
+import type { Locale } from "./locale";
 import type { Citation, EmbeddedChunk } from "./types";
 
 /** Writable cache dir: /tmp on Vercel/serverless, .cache locally */
@@ -89,12 +90,17 @@ export async function ensureIndex(): Promise<EmbeddedChunk[]> {
 export async function retrieve(
   query: string,
   topK = 4,
+  locale?: Locale,
 ): Promise<Citation[]> {
   const store = await ensureIndex();
   const [queryEmbedding] = await embedTexts([query], TaskType.RETRIEVAL_QUERY);
   if (!queryEmbedding) return [];
 
-  const scored = store
+  const pool = locale
+    ? store.filter((chunk) => !chunk.lang || chunk.lang === locale)
+    : store;
+
+  const scored = pool
     .map((chunk) => ({
       chunk,
       score: cosineSimilarity(queryEmbedding, chunk.embedding),

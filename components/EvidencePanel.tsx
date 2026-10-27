@@ -1,17 +1,18 @@
 "use client";
 
+import {
+  evidenceKicker,
+  evidenceTally,
+  summaryLabel,
+  verdictLabel,
+} from "@/lib/evidence-labels";
+import type { Locale } from "@/lib/locale";
 import type {
   Citation,
   EvidenceClaim,
   Verification,
   ClaimVerdict,
 } from "@/lib/types";
-
-const VERDICT_LABEL: Record<ClaimVerdict, string> = {
-  pass: "Pass",
-  fail: "Fail",
-  unsupported: "Unsupported",
-};
 
 function verdictClasses(verdict: ClaimVerdict): string {
   switch (verdict) {
@@ -35,19 +36,6 @@ function pillClasses(verdict: ClaimVerdict): string {
   }
 }
 
-function summaryLabel(summary: Verification["summary"]): string {
-  switch (summary) {
-    case "grounded":
-      return "All claims grounded";
-    case "mixed":
-      return "Mixed — some claims not grounded";
-    case "ungrounded":
-      return "Not grounded in retrieved sources";
-    case "unavailable":
-      return "Provider unavailable — try again";
-  }
-}
-
 function citationTitle(
   claim: EvidenceClaim,
   citations: Citation[],
@@ -60,9 +48,11 @@ function citationTitle(
 export function EvidencePanel({
   verification,
   citations,
+  locale = "en",
 }: {
   verification: Verification;
   citations: Citation[];
+  locale?: Locale;
 }) {
   if (!verification.claims.length) return null;
 
@@ -79,14 +69,14 @@ export function EvidencePanel({
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-500">
-            Evidence · verify step
+            {evidenceKicker(locale)}
           </p>
           <p className="mt-1 text-sm font-medium text-zinc-900 dark:text-zinc-50">
-            {summaryLabel(verification.summary)}
+            {summaryLabel(verification.summary, locale)}
           </p>
         </div>
         <p className="font-mono text-[10px] tabular-nums text-zinc-400">
-          {passCount} pass · {failCount} fail · {unsupportedCount} unsupported
+          {evidenceTally(passCount, failCount, unsupportedCount, locale)}
         </p>
       </div>
 
@@ -103,7 +93,7 @@ export function EvidencePanel({
                 <span
                   className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${pillClasses(claim.verdict)}`}
                 >
-                  {VERDICT_LABEL[claim.verdict]}
+                  {verdictLabel(claim.verdict, locale)}
                 </span>
               </div>
               <p className="mt-1.5 text-[12px] leading-relaxed opacity-80">
