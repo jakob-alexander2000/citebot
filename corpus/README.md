@@ -1,26 +1,31 @@
-# Corpus
+# Quality handbook
 
-Drop **markdown** (`.md`) and **PDF** (`.pdf`) files here. CiteBot chunks them, embeds with Gemini, and answers only from this folder.
+Grounded Docs answers from this folder.
 
-## Swap for a client
+| Folder | Language |
+|--------|----------|
+| `de/` | German chapters |
+| `en/` | English chapters, parallel to `de/` |
 
-1. Delete the sample Nordlicht files (or keep them for local demos).
-2. Add the client’s handbook as `.md` and/or `.pdf` (one topic per file works well).
-3. Rebuild the index:
+A file in `de/` is retrieved only when the active language is German. A file in `en/` only when it is English. A markdown or PDF file placed directly in `corpus/` is language-neutral and is included for both.
+
+`README.md` is not ingested.
+
+## Reindex
 
 ```bash
 rm -rf .cache
 npm run ingest   # needs GEMINI_API_KEY
 ```
 
-On Vercel, the first chat after a corpus change rebuilds the index into `/tmp` automatically — still run `ingest` locally to smoke-test.
+On a serverless host, the first chat after a corpus change rebuilds the index into `/tmp`.
 
 ## PDF
 
-PDFs are extracted with [`unpdf`](https://github.com/unjs/unpdf) (PDF.js serverless build) at ingest/runtime, then chunked like markdown. Scanned/image-only PDFs will yield little or no text — convert those to markdown first.
+PDFs are extracted with `unpdf` at ingest and at runtime, then chunked like markdown. Image-only scans yield little text.
 
-Sample: `remote-work-policy.pdf` (regenerate with `node scripts/make-sample-pdf.mjs`).
+## Another corpus
 
-## Optional path
+Set `CORPUS_DIR` to a folder relative to the project root. See [WHITE_LABEL.md](../WHITE_LABEL.md).
 
-Set `CORPUS_DIR=some/other/folder` if you keep docs outside `/corpus`.
+The previous English sample lives in `examples/nordlicht-corpus` and is not part of the product index.

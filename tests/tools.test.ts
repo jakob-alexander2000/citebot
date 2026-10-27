@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import path from "node:path";
 import { describe, it } from "node:test";
 import { loadCorpusChunks } from "../lib/corpus";
 import {
@@ -100,7 +101,9 @@ describe("handbook tools", () => {
   });
 
   it("finds the committed PTO passage without embeddings", async () => {
-    const chunks = await loadCorpusChunks();
+    const chunks = await loadCorpusChunks({
+      dir: path.join(process.cwd(), "examples/nordlicht-corpus"),
+    });
     const hits = lexicalSearch(chunks, "full-time vacation days", 4);
     assert.ok(hits.some((hit) => hit.source === "pto-and-leave.md"));
 

@@ -3,6 +3,8 @@ export type Chunk = {
   source: string;
   title: string;
   text: string;
+  /** Set when the file lives in corpus/de or corpus/en. Omitted for language-neutral files. */
+  lang?: "de" | "en";
 };
 
 export type EmbeddedChunk = Chunk & {

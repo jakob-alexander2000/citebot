@@ -1,15 +1,21 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { getBrand } from "@/lib/brand";
+import type { Locale } from "@/lib/locale";
+import { ui } from "@/lib/messages";
+import { LocaleSwitch } from "./LocaleSwitch";
 
 type NavId = "home" | "chat" | "handbook" | "harness";
 
 type Props = {
   active?: NavId;
+  locale: Locale;
+  source: "cookie" | "header";
 };
 
-export function SiteHeader({ active }: Props) {
-  const brand = getBrand();
+export function SiteHeader({ active, locale, source }: Props) {
+  const brand = getBrand(locale);
+  const copy = ui(locale);
 
   return (
     <header className="sticky top-0 z-20 border-b border-zinc-200/80 bg-[var(--background)]/85 backdrop-blur-md dark:border-zinc-800/80">
@@ -41,13 +47,13 @@ export function SiteHeader({ active }: Props) {
           </Link>
           <nav className="hidden items-center gap-1 sm:flex" aria-label="Primary">
             <NavLink href="/ask" active={active === "chat"}>
-              Ask
+              {copy.navAsk}
             </NavLink>
             <NavLink href="/handbook" active={active === "handbook"}>
-              Handbook
+              {copy.navHandbook}
             </NavLink>
             <NavLink href="/harness" active={active === "harness"}>
-              Harness
+              {copy.navHarness}
             </NavLink>
           </nav>
         </div>
@@ -61,7 +67,7 @@ export function SiteHeader({ active }: Props) {
                 : "text-xs text-zinc-500 transition hover:text-zinc-900 sm:hidden dark:hover:text-zinc-100"
             }
           >
-            Ask
+            {copy.navAsk}
           </Link>
           <Link
             href="/harness"
@@ -72,8 +78,9 @@ export function SiteHeader({ active }: Props) {
                 : "text-xs text-zinc-500 transition hover:text-zinc-900 sm:hidden dark:hover:text-zinc-100"
             }
           >
-            Harness
+            {copy.navHarness}
           </Link>
+          <LocaleSwitch locale={locale} source={source} />
           {brand.githubUrl ? (
             <a
               href={brand.githubUrl}

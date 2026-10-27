@@ -1,5 +1,6 @@
 import { runAgentLoop } from "./agent";
 import { loadCorpusChunks } from "./corpus";
+import type { Locale } from "./locale";
 import { generateWithFallback } from "./llm";
 import type { ChatResponse } from "./types";
 import { ensureIndex, retrieve } from "./vector-store";
@@ -19,8 +20,9 @@ function clipDetail(text: string, max = 180): string {
  */
 export async function answerWithCitations(
   question: string,
+  locale: Locale = "en",
 ): Promise<ChatResponse> {
-  const chunksPromise = loadCorpusChunks();
+  const chunksPromise = loadCorpusChunks({ locale });
   const warmIndex: Promise<unknown> = ensureIndex().then(
     () => undefined,
     (err: unknown) => err,
@@ -45,15 +47,17 @@ export async function answerWithCitations(
     search: async (query, topK = 4) => {
       const failure = await warmIndex;
       if (failure) throw failure;
-      return retrieve(query, topK);
+      return retrieve(query, topK, locale);
     },
-    verify: verifyAnswer,
+    verify: (q, answer, citations) => verifyAnswer(q, answer, citations, locale),
+    locale,
   });
 
   if (usedFallback) {
     const draft = response.steps.find((step) => step.kind === "draft");
     if (draft) {
-      draft.detail = clipDetail(`${draft.detail} · via OpenAI fallback`);
+      const via = locale === "de" ? "über OpenAI-Fallback" : "via OpenAI fallback";
+      draft.detail = clipDetail(`${draft.detail} · ${via}`);
     }
   }
 

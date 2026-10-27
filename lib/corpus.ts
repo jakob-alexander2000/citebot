@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { isLocale, type Locale } from "./locale";
 import type { Chunk } from "./types";
 import { extractPdfText, titleFromPlainText } from "./pdf";
 
@@ -17,6 +18,31 @@ function corpusDir(): string {
   return path.join(process.cwd(), "corpus");
 }
 
+export function corpusRoot(dir?: string): string {
+  if (!dir) return corpusDir();
+  return path.isAbsolute(dir)
+    ? dir
+    : path.join(/*turbopackIgnore: true*/ process.cwd(), dir);
+}
+
+export type CorpusEntry = {
+  /** Path relative to the corpus root, using `/` separators. */
+  relativePath: string;
+  absolutePath: string;
+  /** `de` or `en` when the file sits in that language folder. */
+  lang?: Locale;
+};
+
+export type LoadCorpusOptions = {
+  /** Absolute or project-relative corpus root. Defaults to CORPUS_DIR or `corpus`. */
+  dir?: string;
+  /**
+   * Keep language-neutral files plus this language.
+   * Files tagged with the other language are omitted.
+   */
+  locale?: Locale;
+};
+
 function isCorpusFile(name: string): boolean {
   const lower = name.toLowerCase();
   if (lower === "readme.md" || lower.startsWith("readme.")) return false;
@@ -28,7 +54,12 @@ function titleFromMarkdown(content: string, fallback: string): string {
   return match?.[1]?.trim() || fallback;
 }
 
-function splitIntoChunks(source: string, title: string, content: string): Chunk[] {
+function splitIntoChunks(
+  source: string,
+  title: string,
+  content: string,
+  lang?: Locale,
+): Chunk[] {
   // Prefer markdown ## sections; plain PDF text falls through as one/few chunks.
   const sections = content.includes("\n## ")
     ? content
@@ -73,45 +104,87 @@ function splitIntoChunks(source: string, title: string, content: string): Chunk[
     if (buffer.trim()) pieces.push(buffer.trim());
   }
 
-  const stem = source.replace(/\.(md|pdf)$/i, "");
+  const stem = source.replace(/\.(md|pdf)$/i, "").replace(/[\\/]/g, "-");
   return pieces.map((text, index) => ({
     id: `${stem}-${index + 1}`,
     source,
     title,
     text,
+    ...(lang ? { lang } : {}),
   }));
 }
 
-export function listCorpusFiles(): string[] {
-  const dir = corpusDir();
-  if (!fs.existsSync(dir)) return [];
-  return fs
-    .readdirSync(dir)
-    .filter((f) => isCorpusFile(f) && !f.startsWith("."))
-    .sort();
+/** Root files, plus one level inside `de/` and `en/`. README files are skipped. */
+export function listCorpusEntries(root = corpusDir()): CorpusEntry[] {
+  if (!fs.existsSync(/*turbopackIgnore: true*/ root)) return [];
+  const entries: CorpusEntry[] = [];
+
+  const consider = (absolutePath: string, relativePath: string) => {
+    const filename = path.basename(relativePath);
+    if (filename.startsWith(".") || !isCorpusFile(filename)) return;
+    const top = relativePath.split("/")[0] ?? "";
+    const lang = relativePath.includes("/") && isLocale(top) ? top : undefined;
+    entries.push({ relativePath, absolutePath, lang });
+  };
+
+  for (const name of fs.readdirSync(/*turbopackIgnore: true*/ root)) {
+    if (name.startsWith(".")) continue;
+    const absolute = path.join(/*turbopackIgnore: true*/ root, name);
+    let stat: fs.Stats;
+    try {
+      stat = fs.statSync(/*turbopackIgnore: true*/ absolute);
+    } catch {
+      continue;
+    }
+    if (stat.isDirectory()) {
+      if (!isLocale(name)) continue;
+      for (const child of fs.readdirSync(/*turbopackIgnore: true*/ absolute)) {
+        if (child.startsWith(".")) continue;
+        const childAbs = path.join(/*turbopackIgnore: true*/ absolute, child);
+        let childStat: fs.Stats;
+        try {
+          childStat = fs.statSync(/*turbopackIgnore: true*/ childAbs);
+        } catch {
+          continue;
+        }
+        if (!childStat.isFile()) continue;
+        consider(childAbs, `${name}/${child}`);
+      }
+      continue;
+    }
+    if (stat.isFile()) consider(absolute, name);
+  }
+
+  entries.sort((a, b) => a.relativePath.localeCompare(b.relativePath));
+  return entries;
+}
+
+function matchesLocale(lang: Locale | undefined, locale: Locale | undefined): boolean {
+  if (!locale || !lang) return true;
+  return lang === locale;
 }
 
 async function readCorpusDocument(
-  file: string,
+  absolutePath: string,
+  relativePath: string,
 ): Promise<{ title: string; content: string } | null> {
-  const dir = corpusDir();
-  const full = path.join(dir, file);
-  const lower = file.toLowerCase();
+  const lower = relativePath.toLowerCase();
+  const filename = path.basename(relativePath);
 
   if (lower.endsWith(".md")) {
-    const content = fs.readFileSync(full, "utf8");
+    const content = fs.readFileSync(absolutePath, "utf8");
     return {
-      title: titleFromMarkdown(content, file),
+      title: titleFromMarkdown(content, filename),
       content,
     };
   }
 
   if (lower.endsWith(".pdf")) {
-    const data = new Uint8Array(fs.readFileSync(full));
+    const data = new Uint8Array(fs.readFileSync(absolutePath));
     const content = await extractPdfText(data);
     if (!content) return null;
     return {
-      title: titleFromPlainText(content, file.replace(/\.pdf$/i, "")),
+      title: titleFromPlainText(content, filename.replace(/\.pdf$/i, "")),
       content,
     };
   }
@@ -119,23 +192,25 @@ async function readCorpusDocument(
   return null;
 }
 
-export async function loadCorpusChunks(): Promise<Chunk[]> {
-  const files = listCorpusFiles();
+export async function loadCorpusChunks(options?: LoadCorpusOptions): Promise<Chunk[]> {
+  const root = corpusRoot(options?.dir);
   const chunks: Chunk[] = [];
-  for (const file of files) {
-    const doc = await readCorpusDocument(file);
+  for (const entry of listCorpusEntries(root)) {
+    if (!matchesLocale(entry.lang, options?.locale)) continue;
+    const doc = await readCorpusDocument(entry.absolutePath, entry.relativePath);
     if (!doc) continue;
-    chunks.push(...splitIntoChunks(file, doc.title, doc.content));
+    chunks.push(
+      ...splitIntoChunks(entry.relativePath, doc.title, doc.content, entry.lang),
+    );
   }
   return chunks;
 }
 
 export function corpusFingerprint(): string {
   const dir = corpusDir();
-  const files = listCorpusFiles();
-  const parts = files.map((file) => {
-    const stat = fs.statSync(path.join(dir, file));
-    return `${file}:${stat.size}:${stat.mtimeMs}`;
+  const parts = listCorpusEntries(dir).map((entry) => {
+    const stat = fs.statSync(entry.absolutePath);
+    return `${entry.relativePath}:${stat.size}:${stat.mtimeMs}`;
   });
   return `${dir}|${parts.join("|")}`;
 }

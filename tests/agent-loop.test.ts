@@ -21,6 +21,8 @@ type TurnFile = {
   repeatsSameCall: unknown[];
 };
 
+const NORDLICHT = path.join(process.cwd(), "examples/nordlicht-corpus");
+
 const turns = JSON.parse(
   fs.readFileSync(path.join(process.cwd(), "tests/fixtures/agent-turns.json"), "utf8"),
 ) as TurnFile;
@@ -67,7 +69,7 @@ describe("agent loop", () => {
   });
 
   it("searches, drafts, and verifies a PTO question from fixtures", async () => {
-    const chunks = await loadCorpusChunks();
+    const chunks = await loadCorpusChunks({ dir: NORDLICHT });
     const model = scripted(turns.ptoHappyPath);
     let verified = "";
     const result = await runAgentLoop({
@@ -93,7 +95,7 @@ describe("agent loop", () => {
   });
 
   it("records quote_check on the trace", async () => {
-    const chunks = await loadCorpusChunks();
+    const chunks = await loadCorpusChunks({ dir: NORDLICHT });
     const model = scripted(turns.quoteThenAnswer);
     const result = await runAgentLoop({
       question: "Does the handbook say 30 days of paid vacation?",

@@ -1,3 +1,10 @@
+import {
+  evidenceKicker,
+  evidenceTally,
+  summaryLabel,
+  verdictLabel,
+} from "@/lib/evidence-labels";
+import type { Locale } from "@/lib/locale";
 import type { ClaimVerdict, VerificationSummary } from "@/lib/types";
 
 export type SnapshotClaim = {
@@ -5,12 +12,6 @@ export type SnapshotClaim = {
   verdict: ClaimVerdict;
   evidence: string;
   sourceTitle?: string;
-};
-
-const VERDICT_LABEL: Record<ClaimVerdict, string> = {
-  pass: "Pass",
-  fail: "Fail",
-  unsupported: "Unsupported",
 };
 
 function verdictClasses(verdict: ClaimVerdict): string {
@@ -35,29 +36,18 @@ function pillClasses(verdict: ClaimVerdict): string {
   }
 }
 
-function summaryLabel(summary: VerificationSummary): string {
-  switch (summary) {
-    case "grounded":
-      return "All claims grounded";
-    case "mixed":
-      return "Mixed — some claims not grounded";
-    case "ungrounded":
-      return "Not grounded in retrieved sources";
-    case "unavailable":
-      return "Provider unavailable — try again";
-  }
-}
-
 /**
- * Faithful static recreation of EvidencePanel for the harness writeup.
- * Same chrome / verdict colors as the live chat panel.
+ * Static recreation of EvidencePanel for the harness page.
+ * Same chrome and verdict colors as the live chat panel.
  */
 export function EvidenceSnapshot({
   summary,
   claims,
+  locale = "en",
 }: {
   summary: VerificationSummary;
   claims: SnapshotClaim[];
+  locale?: Locale;
 }) {
   const passCount = claims.filter((c) => c.verdict === "pass").length;
   const failCount = claims.filter((c) => c.verdict === "fail").length;
@@ -73,14 +63,14 @@ export function EvidenceSnapshot({
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-500">
-            Evidence · verify step
+            {evidenceKicker(locale)}
           </p>
           <p className="mt-1 text-sm font-medium text-zinc-900 dark:text-zinc-50">
-            {summaryLabel(summary)}
+            {summaryLabel(summary, locale)}
           </p>
         </div>
         <p className="font-mono text-[10px] tabular-nums text-zinc-400">
-          {passCount} pass · {failCount} fail · {unsupportedCount} unsupported
+          {evidenceTally(passCount, failCount, unsupportedCount, locale)}
         </p>
       </div>
 
@@ -95,7 +85,7 @@ export function EvidenceSnapshot({
               <span
                 className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${pillClasses(claim.verdict)}`}
               >
-                {VERDICT_LABEL[claim.verdict]}
+                {verdictLabel(claim.verdict, locale)}
               </span>
             </div>
             <p className="mt-1.5 text-[12px] leading-relaxed opacity-80">

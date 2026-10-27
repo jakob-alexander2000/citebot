@@ -1,9 +1,9 @@
-# CiteBot feature map
+# Grounded Docs feature map
 
 ## Verify harness (shared path)
 
 **What it does**  
-After every answer, CiteBot runs one verify step against the *same* retrieved handbook chunks used for generation. The verifier splits the answer into atomic claims and labels each:
+After every answer, Grounded Docs runs one verify step against the *same* retrieved handbook chunks used for generation. The verifier splits the answer into atomic claims and labels each:
 
 | Verdict | Meaning |
 |---------|---------|
@@ -29,16 +29,16 @@ A correct “not in the handbook” refusal counts as `pass` (the gap is real). 
 
 **How to drive**
 
-1. Ask a handbook question on `/ask` (e.g. vacation days).
-2. Expand a source pill — handbook passage still works.
-3. Read the Evidence panel: claims + pass/fail/unsupported.
+1. Open `/ask` and set DE or EN.
+2. Ask a question from [docs/demo-questions.md](./docs/demo-questions.md).
+3. Expand a source pill — the passage is from `corpus/de` or `corpus/en`.
+4. Read the Evidence panel in that language.
 
 **How to verify**
 
-1. Grounded: *“How many vacation days do full-time employees get?”* → expect `pass` on ~30 days with PTO evidence.
-2. Trick: *“What’s our office dog’s name?”* → refuse / unsupported invented facts; no fake dog name marked `pass`.
-3. `npm run build` must succeed.
-4. Live: https://citebot-chi.vercel.app
+1. Grounded: the customer-complaint question → expect `pass` on 8 ppm and the 12-month window.
+2. Gap: ask for the quality representative’s first name → a refusal should pass; an invented name must not.
+3. `npm test` and `npm run build` must succeed.
 
 ## Agent loop
 
@@ -47,15 +47,15 @@ Each question is plan → at most three corpus tools → draft → the verify ha
 
 **How to verify**
 
-1. `npm test` — fixture model, no `GEMINI_API_KEY`. Includes the 3-round cap and a repeated-call stop.
-2. With a key: ask a PTO question and confirm **Steps** lists `search_handbook` (or a sibling tool) and the Evidence panel still shows pass / fail.
-3. CI: `.github/workflows/ci.yml` plus [citebot-evals](https://github.com/jakob-alexander2000/citebot-evals) (`npm run eval`, 18/18).
+1. `npm test` — fixture model, no `GEMINI_API_KEY`. Includes the 3-round cap, a repeated-call stop, and the DE/EN corpus split.
+2. With a key: ask a demo question and confirm **Steps** lists `search_handbook` (or a sibling tool) and the Evidence panel shows pass / fail in the active language.
+3. CI: `.github/workflows/ci.yml`. A separate citebot-evals job still runs; it is not part of this product.
 
 ## Intentionally not built
 
 - Multi-agent “judge swarm”
 - Web search or shell tools
-- New product name / Electron desktop
+- Billing, multi-tenant auth, or a desktop app
 
 ## White-label (env brand + corpus)
 
@@ -75,7 +75,6 @@ One codebase, many client deploys. `lib/brand.ts` reads `NEXT_PUBLIC_BRAND_*`; `
 
 **How to verify**
 
-1. `corpus/remote-work-policy.pdf` is present (or `node scripts/make-sample-pdf.mjs`).
-2. `rm -rf .cache && npm run ingest` — logs chunks including `remote-work-policy-*`.
-3. Ask: *“How many remote days per week?”* → cite the PDF; `/handbook` lists it.
-4. `npm run build` must succeed.
+1. `examples/nordlicht-corpus/remote-work-policy.pdf` is present (or `node scripts/make-sample-pdf.mjs`).
+2. Point `CORPUS_DIR` at that folder, then `rm -rf .cache && npm run ingest`.
+3. `npm run build` must succeed. The product handbook itself is markdown under `corpus/de` and `corpus/en`.

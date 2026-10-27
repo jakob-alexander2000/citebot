@@ -1,4 +1,5 @@
 import { getBrand } from "./brand";
+import type { Locale } from "./locale";
 import {
   executeTool,
   isToolName,
@@ -19,6 +20,12 @@ export const AGENT_LOOP_STOP_MESSAGE =
 
 export const AGENT_DRAFT_STOP_MESSAGE =
   "Stopped after 3 tool rounds — the handbook search did not produce an answer. Try a narrower question.";
+
+export const AGENT_LOOP_STOP_MESSAGE_DE =
+  "Nach 3 Werkzeugrunden gestoppt — das Modell hat weiter Werkzeuge aufgerufen, statt zu antworten. Bitte eine engere Frage zum Handbuch stellen.";
+
+export const AGENT_DRAFT_STOP_MESSAGE_DE =
+  "Nach 3 Werkzeugrunden gestoppt — die Handbuchsuche hat keine Antwort ergeben. Bitte eine engere Frage stellen.";
 
 export type GenerateFn = (prompt: string) => Promise<string>;
 
@@ -45,6 +52,8 @@ export type AgentLoopInput = {
   generate: GenerateFn;
   search: (query: string, topK?: number) => Promise<Citation[]>;
   verify: VerifyFn;
+  /** Answer, evidence prompt, and visible step labels. Defaults to English. */
+  locale?: Locale;
 };
 
 const INPUT_KEYS = ["query", "id", "source", "title", "quote", "citationId", "topK"] as const;
@@ -148,8 +157,9 @@ function buildPrompt(args: {
   chunks: Chunk[];
   mode: "act" | "draft";
   toolRounds: number;
+  locale: Locale;
 }): string {
-  const brand = getBrand();
+  const brand = getBrand(args.locale);
   const observations = args.history.length
     ? args.history
         .map(
@@ -157,23 +167,60 @@ function buildPrompt(args: {
             `(${index + 1}) ${item.tool} ${JSON.stringify(item.input)}\n${item.summary}\n${item.body}`,
         )
         .join("\n\n")
-    : "(none yet)";
+    : args.locale === "de"
+      ? "(noch keine)"
+      : "(none yet)";
 
   const contract =
-    args.mode === "draft"
-      ? `Tools are closed. Return JSON only:
+    args.locale === "de"
+      ? args.mode === "draft"
+        ? `Die Werkzeuge sind geschlossen. Nur JSON zurückgeben:
+{"action":"answer","answer":"..."}
+Kein weiteres Werkzeug anfordern. Wenn die Textstellen die Frage nicht abdecken, sage, dass das Handbuch das nicht behandelt.`
+        : `Nur JSON, eine Aktion:
+{"action":"tool","plan":"kurzer Grund","tool":"search_handbook"|"list_topics"|"get_section"|"quote_check","input":{}}
+oder, sobald die Textstellen reichen:
+{"action":"answer","answer":"..."}
+
+Werkzeugrunden: ${args.toolRounds} von ${MAX_TOOL_ROUNDS}. Zuerst search_handbook. Keinen Aufruf wiederholen. Keine Handbuchfakten erfinden.`
+      : args.mode === "draft"
+        ? `Tools are closed. Return JSON only:
 {"action":"answer","answer":"..."}
 Do not request another tool. If the passages do not cover the question, say the handbook does not cover it.`
-      : `Return JSON only, one action:
+        : `Return JSON only, one action:
 {"action":"tool","plan":"short reason","tool":"search_handbook"|"list_topics"|"get_section"|"quote_check","input":{}}
 or, once the passages are enough:
 {"action":"answer","answer":"..."}
 
 Tool rounds used: ${args.toolRounds} of ${MAX_TOOL_ROUNDS}. Prefer search_handbook first. Do not repeat a call. Do not invent handbook facts.`;
 
+  if (args.locale === "de") {
+    return `Du bist ${brand.name}, ein knapper Assistent für das ${brand.corpusLabel} der ${brand.org}.
+Antworte nur anhand der Handbuch-Werkzeuge und der Textstellen unten. Kein Web. Kein Außenwissen.
+Antworte auf Deutsch, in 2–6 Sätzen. Zitiere Textstellen inline als [n], passend zu den Nummern unten.
+Die JSON-Schlüssel bleiben Englisch. Nur das Feld answer ist Deutsch.
+
+Werkzeuge:
+- search_handbook input {"query":"..."} — Textstellen suchen
+- list_topics input {} — Dokumenttitel und Abschnitte
+- get_section input {"id":"..."} oder {"source":"..."} oder {"title":"..."} — einen Abschnitt öffnen
+- quote_check input {"quote":"..."} — prüfen, ob ein Zitat im Handbuch steht
+
+${contract}
+
+Frage:
+${args.question}
+
+Werkzeugbeobachtungen:
+${observations}
+
+Textstellen:
+${passagesBlock(args.citations, args.chunks)}`;
+  }
+
   return `You are ${brand.name}, a concise assistant for the ${brand.org} ${brand.corpusLabel}.
 Answer only from the handbook tools and passages below. No web. No outside knowledge.
-Keep answers to 2–6 sentences. Cite passages inline as [n] matching the numbers below.
+Write the answer in English. Keep answers to 2–6 sentences. Cite passages inline as [n] matching the numbers below.
 
 Tools:
 - search_handbook input {"query":"..."} — retrieve passages
@@ -205,7 +252,34 @@ function isFatalToolError(err: unknown): boolean {
  * `generate` and `verify` are injected so fixture tests never call a model.
  */
 export async function runAgentLoop(input: AgentLoopInput): Promise<ChatResponse> {
-  const runtime: ToolRuntime = { chunks: input.chunks, search: input.search };
+  const locale: Locale = input.locale ?? "en";
+  const runtime: ToolRuntime = {
+    chunks: input.chunks,
+    search: input.search,
+    locale,
+  };
+  const stops =
+    locale === "de"
+      ? { loop: AGENT_LOOP_STOP_MESSAGE_DE, draft: AGENT_DRAFT_STOP_MESSAGE_DE }
+      : { loop: AGENT_LOOP_STOP_MESSAGE, draft: AGENT_DRAFT_STOP_MESSAGE };
+  const labels =
+    locale === "de"
+      ? {
+          plan: "Plan",
+          draft: "Entwurf",
+          stopped: "Gestoppt",
+          skipped: "Übersprungen — dieser Aufruf lief bereits.",
+          invalid: "Die Modellausgabe war kein verwendbares JSON.",
+          limit: "Werkzeuggrenze erreicht, bevor eine Handbuchantwort vorlag.",
+        }
+      : {
+          plan: "Plan",
+          draft: "Draft",
+          stopped: "Stopped",
+          skipped: "Skipped — this call already ran.",
+          invalid: "Model output was not usable JSON.",
+          limit: "Tool limit reached before a handbook answer.",
+        };
   const steps: AgentStep[] = [];
   const history: Observation[] = [];
   const seen = new Set<string>();
@@ -219,7 +293,7 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<ChatResponse>
   const notePlan = (plan?: string) => {
     if (!plan || planned) return;
     planned = true;
-    steps.push({ kind: "plan", label: "Plan", detail: clip(plan, 180) });
+    steps.push({ kind: "plan", label: labels.plan, detail: clip(plan, 180) });
   };
 
   const applyTool = async (
@@ -232,7 +306,7 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<ChatResponse>
         kind: "tool",
         tool,
         label: tool,
-        detail: "Skipped — this call already ran.",
+        detail: labels.skipped,
       });
       return "repeat";
     }
@@ -278,6 +352,7 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<ChatResponse>
         chunks: input.chunks,
         mode: "act",
         toolRounds,
+        locale,
       }),
     );
     const turn = parseModelTurn(raw);
@@ -286,7 +361,7 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<ChatResponse>
       history.push({
         tool: "invalid",
         input: {},
-        summary: "Model output was not usable JSON.",
+        summary: labels.invalid,
         body: clip(raw, 400),
       });
       continue;
@@ -321,6 +396,7 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<ChatResponse>
         chunks: input.chunks,
         mode: "draft",
         toolRounds,
+        locale,
       }),
     );
     const turn = parseModelTurn(raw);
@@ -329,21 +405,21 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<ChatResponse>
       draft = turn.answer;
     } else if (turn?.action === "tool") {
       stoppedEarly = true;
-      draft = AGENT_LOOP_STOP_MESSAGE;
+      draft = stops.loop;
     } else {
       stoppedEarly = true;
-      draft = AGENT_DRAFT_STOP_MESSAGE;
+      draft = stops.draft;
     }
   }
 
   if (stoppedEarly) {
     steps.push({
       kind: "stop",
-      label: "Stopped",
-      detail: "Tool limit reached before a handbook answer.",
+      label: labels.stopped,
+      detail: labels.limit,
     });
   } else {
-    steps.push({ kind: "draft", label: "Draft", detail: clip(draft!, 180) });
+    steps.push({ kind: "draft", label: labels.draft, detail: clip(draft!, 180) });
   }
 
   const verification = await input.verify(

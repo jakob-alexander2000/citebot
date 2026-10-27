@@ -1,17 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
+import { corpusRoot, listCorpusEntries } from "./corpus";
+import type { Locale } from "./locale";
 import { extractPdfText, titleFromPlainText } from "./pdf";
-
-function corpusDir(): string {
-  // Relative to project root only (e.g. corpus or client-docs).
-  // Default "corpus" stays statically joinable for Vercel file tracing;
-  // CORPUS_DIR overrides use turbopackIgnore (pair with outputFileTracingIncludes).
-  const rel = process.env.CORPUS_DIR?.trim();
-  if (rel) {
-    return path.join(/*turbopackIgnore: true*/ process.cwd(), rel);
-  }
-  return path.join(process.cwd(), "corpus");
-}
 
 export type HandbookDoc = {
   slug: string;
@@ -21,10 +12,18 @@ export type HandbookDoc = {
   content: string;
   /** Source format for UI badges. */
   format: "md" | "pdf";
+  lang?: Locale;
 };
 
-/** Preferred order for the sample Nordlicht corpus; unknown files sort after. */
+/** Topic order for the QM handbook, then the older English sample. */
 const ORDER = [
+  "qualitaetspolitik",
+  "quality-policy",
+  "dokumentenlenkung",
+  "document-control",
+  "capa",
+  "lieferanten",
+  "suppliers",
   "welcome",
   "pto-and-leave",
   "expense-policy",
@@ -48,54 +47,56 @@ function summaryFromText(content: string): string {
   return firstPara.length > 140 ? `${firstPara.slice(0, 137)}…` : firstPara;
 }
 
-function isCorpusFile(name: string): boolean {
-  const lower = name.toLowerCase();
-  if (lower === "readme.md" || lower.startsWith("readme.")) return false;
-  return lower.endsWith(".md") || lower.endsWith(".pdf");
-}
+export type ListHandbookOptions = {
+  dir?: string;
+  locale?: Locale;
+};
 
-export async function listHandbookDocs(): Promise<HandbookDoc[]> {
-  const dir = corpusDir();
-  if (!fs.existsSync(dir)) return [];
-  const files = fs
-    .readdirSync(dir)
-    .filter((f) => isCorpusFile(f) && !f.startsWith("."));
-
+export async function listHandbookDocs(
+  options?: ListHandbookOptions,
+): Promise<HandbookDoc[]> {
+  const root = corpusRoot(options?.dir);
   const docs: HandbookDoc[] = [];
-  for (const filename of files) {
-    const lower = filename.toLowerCase();
-    const slug = filename.replace(/\.(md|pdf)$/i, "");
-    const full = path.join(dir, filename);
+
+  for (const entry of listCorpusEntries(root)) {
+    if (options?.locale && entry.lang && entry.lang !== options.locale) continue;
+    const lower = entry.relativePath.toLowerCase();
+    const slug = entry.relativePath.replace(/\.(md|pdf)$/i, "");
+    const filename = entry.relativePath;
 
     if (lower.endsWith(".md")) {
-      const content = fs.readFileSync(full, "utf8");
+      const content = fs.readFileSync(entry.absolutePath, "utf8");
       docs.push({
         slug,
         filename,
-        title: titleFromMarkdown(content, slug),
+        title: titleFromMarkdown(content, path.basename(slug)),
         summary: summaryFromText(content),
         content,
         format: "md",
+        lang: entry.lang,
       });
       continue;
     }
 
-    const data = new Uint8Array(fs.readFileSync(full));
+    const data = new Uint8Array(fs.readFileSync(entry.absolutePath));
     const content = await extractPdfText(data);
     if (!content) continue;
     docs.push({
       slug,
       filename,
-      title: titleFromPlainText(content, slug),
+      title: titleFromPlainText(content, path.basename(slug)),
       summary: summaryFromText(content),
       content,
       format: "pdf",
+      lang: entry.lang,
     });
   }
 
   docs.sort((a, b) => {
-    const ai = ORDER.indexOf(a.slug as (typeof ORDER)[number]);
-    const bi = ORDER.indexOf(b.slug as (typeof ORDER)[number]);
+    const aBase = path.basename(a.slug);
+    const bBase = path.basename(b.slug);
+    const ai = ORDER.indexOf(aBase as (typeof ORDER)[number]);
+    const bi = ORDER.indexOf(bBase as (typeof ORDER)[number]);
     const ao = ai === -1 ? 999 : ai;
     const bo = bi === -1 ? 999 : bi;
     return ao - bo || a.slug.localeCompare(b.slug);
@@ -104,7 +105,10 @@ export async function listHandbookDocs(): Promise<HandbookDoc[]> {
   return docs;
 }
 
-export async function getHandbookDoc(slug: string): Promise<HandbookDoc | null> {
-  const docs = await listHandbookDocs();
+export async function getHandbookDoc(
+  slug: string,
+  options?: ListHandbookOptions,
+): Promise<HandbookDoc | null> {
+  const docs = await listHandbookDocs(options);
   return docs.find((d) => d.slug === slug) ?? null;
 }

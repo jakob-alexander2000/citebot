@@ -7,6 +7,9 @@ import { Citations } from "./Citations";
 import { EvidencePanel } from "./EvidencePanel";
 import type { AgentStep, Citation, Verification } from "@/lib/types";
 import { getBrand } from "@/lib/brand";
+import { DEMO_QUESTIONS } from "@/lib/demo-questions";
+import type { Locale } from "@/lib/locale";
+import { ui } from "@/lib/messages";
 
 type Message = {
   id: string;
@@ -20,26 +23,17 @@ type Message = {
 
 export type Topic = { title: string; desc: string };
 
-const FALLBACK_TOPICS: Topic[] = [
-  { title: "Welcome & culture", desc: "Mission, hours, hybrid office" },
-  { title: "PTO & leave", desc: "Vacation, sick leave, parental" },
-  { title: "Expenses", desc: "Reimbursement rules & how to submit" },
-  { title: "Tools & security", desc: "Accounts, secrets, devices" },
-  { title: "Friday demo day", desc: "Format, slots, guests" },
-];
-
-const SUGGESTIONS = [
-  "What are the core working hours?",
-  "How many vacation days do I get?",
-  "Can I expense a new office chair?",
-  "Is it okay to put API keys in the code repo?",
-  "How does Friday demo day work?",
-];
-
-export function Chat({ topics }: { topics?: Topic[] } = {}) {
-  // undefined → sample fallback; [] → still loading / empty corpus → hide section.
-  const TOPICS = topics ?? FALLBACK_TOPICS;
-  const brand = getBrand();
+export function Chat({
+  topics = [],
+  locale,
+}: {
+  topics?: Topic[];
+  locale: Locale;
+}) {
+  const TOPICS = topics;
+  const brand = getBrand(locale);
+  const copy = ui(locale);
+  const suggestions = DEMO_QUESTIONS[locale].map((item) => item.question);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -62,7 +56,7 @@ export function Chat({ topics }: { topics?: Topic[] } = {}) {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: trimmed }),
+        body: JSON.stringify({ question: trimmed, locale }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -119,21 +113,19 @@ export function Chat({ topics }: { topics?: Topic[] } = {}) {
                 {brand.taglineLine2}
               </h1>
               <p className="mt-4 max-w-md text-[15px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-                Document-grounded answers only — not a general chatbot. A short
-                tool loop reads the handbook, then a verify step checks each
-                claim against those passages.{" "}
+                {copy.askLead}{" "}
                 <Link
                   href="/handbook"
                   className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 transition hover:decoration-zinc-900 dark:text-zinc-100 dark:decoration-zinc-600 dark:hover:decoration-zinc-300"
                 >
-                  Read the corpus
+                  {copy.readHandbook}
                 </Link>
                 {" · "}
                 <Link
                   href="/harness"
                   className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 transition hover:decoration-zinc-900 dark:text-zinc-100 dark:decoration-zinc-600 dark:hover:decoration-zinc-300"
                 >
-                  How the harness works
+                  {copy.howHarness}
                 </Link>
                 .
               </p>
@@ -143,13 +135,13 @@ export function Chat({ topics }: { topics?: Topic[] } = {}) {
             <section>
               <div className="mb-3 flex items-baseline justify-between">
                 <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
-                  What&apos;s covered
+                  {copy.covered}
                 </h2>
                 <Link
                   href="/handbook"
                   className="text-xs text-zinc-500 transition hover:text-zinc-900 dark:hover:text-zinc-100"
                 >
-                  Open handbook →
+                  {copy.openHandbook} →
                 </Link>
               </div>
               <ul className="grid gap-px overflow-hidden rounded-lg border border-zinc-200 bg-zinc-200 dark:border-zinc-800 dark:bg-zinc-800 sm:grid-cols-2">
@@ -172,10 +164,10 @@ export function Chat({ topics }: { topics?: Topic[] } = {}) {
 
             <section>
               <h2 className="mb-3 text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
-                Try asking
+                {copy.tryAsking}
               </h2>
               <div className="flex flex-col gap-1.5">
-                {SUGGESTIONS.map((s) => (
+                {suggestions.map((s) => (
                   <button
                     key={s}
                     type="button"
@@ -213,15 +205,16 @@ export function Chat({ topics }: { topics?: Topic[] } = {}) {
                     {msg.content}
                   </p>
                   {msg.steps && msg.steps.length > 0 ? (
-                    <AgentSteps steps={msg.steps} />
+                    <AgentSteps steps={msg.steps} locale={locale} />
                   ) : null}
                   {msg.citations && msg.citations.length > 0 ? (
-                    <Citations citations={msg.citations} />
+                    <Citations citations={msg.citations} locale={locale} />
                   ) : null}
                   {msg.verification ? (
                     <EvidencePanel
                       verification={msg.verification}
                       citations={msg.citations || []}
+                      locale={locale}
                     />
                   ) : null}
                 </div>
@@ -230,7 +223,7 @@ export function Chat({ topics }: { topics?: Topic[] } = {}) {
             {loading ? (
               <div className="flex items-center gap-2 text-sm text-zinc-500">
                 <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-zinc-400" />
-                Reading the handbook…
+                {copy.reading}
               </div>
             ) : null}
             <div ref={bottomRef} />
@@ -245,7 +238,7 @@ export function Chat({ topics }: { topics?: Topic[] } = {}) {
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask the handbook…"
+              placeholder={copy.placeholder}
               disabled={loading}
               className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-zinc-400 disabled:opacity-60"
             />
@@ -255,7 +248,7 @@ export function Chat({ topics }: { topics?: Topic[] } = {}) {
               className="brand-ask rounded-lg px-3.5 py-2 text-sm font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-35"
               style={{ backgroundColor: "var(--brand-accent)" }}
             >
-              Ask
+              {copy.ask}
             </button>
           </div>
           <p className="mt-2.5 text-[11px] text-zinc-400">

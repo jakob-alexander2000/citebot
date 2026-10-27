@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const out = path.join(__dirname, "..", "corpus", "remote-work-policy.pdf");
+const out = path.join(__dirname, "..", "examples", "nordlicht-corpus", "remote-work-policy.pdf");
 
 const lines = [
   "Nordlicht Labs — Remote Work Policy",

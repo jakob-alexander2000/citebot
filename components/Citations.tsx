@@ -1,9 +1,17 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import type { Locale } from "@/lib/locale";
+import { ui } from "@/lib/messages";
 import type { Citation } from "@/lib/types";
 
-export function Citations({ citations }: { citations: Citation[] }) {
+export function Citations({
+  citations,
+  locale = "en",
+}: {
+  citations: Citation[];
+  locale?: Locale;
+}) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [display, setDisplay] = useState<Citation | null>(null);
   const [expanded, setExpanded] = useState(false);
@@ -17,6 +25,7 @@ export function Citations({ citations }: { citations: Citation[] }) {
   }, []);
 
   if (!citations.length) return null;
+  const copy = ui(locale);
 
   function select(id: string) {
     if (closeTimer.current) {
@@ -41,7 +50,7 @@ export function Citations({ citations }: { citations: Citation[] }) {
   return (
     <div className="mt-4 border-t border-zinc-200/80 pt-3 dark:border-zinc-800">
       <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-500">
-        Sources
+        {copy.sources}
       </p>
       <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Citations">
         {citations.map((c, index) => {
