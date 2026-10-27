@@ -136,6 +136,13 @@ function CraftHome({
           >
             {copy.homeHarnessLink}
           </Link>
+          <span className="text-zinc-400"> · </span>
+          <Link
+            href="/growth"
+            className="text-zinc-600 underline decoration-zinc-300 underline-offset-4 dark:text-zinc-400 dark:decoration-zinc-600"
+          >
+            Events
+          </Link>
         </p>
       </section>
     </article>

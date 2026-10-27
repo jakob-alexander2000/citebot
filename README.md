@@ -22,6 +22,10 @@ Six screenshot questions (3 DE, 3 EN) are in [docs/demo-questions.md](./docs/dem
 
 After each answer, a shared verify step (`lib/verify.ts`) checks claims against the handbook passages the agent tools returned and shows an **Evidence** panel (pass / fail / unsupported). The technical write-up is at [/harness](/harness). See [FEATURE_MAP.md](./FEATURE_MAP.md).
 
+## Events
+
+`POST /api/events` records page views (home, ask, harness, handbook, growth), chip clicks, submits, and verify counts. The question itself is not stored: an 8-character hash and a character count. CiteBot runs one chip-order experiment on `/ask` (`cb_chip_order`). Grounded Docs does not. The write-up, including how to read the tally, is at [/growth](/growth). Optional forward: `ANALYTICS_URL`, `PLAUSIBLE_DOMAIN`, `VERCEL_ANALYTICS_URL`.
+
 ## Run locally
 
 1. `npm install && cp .env.example .env.local` — paste a **Google AI Studio** API key ([get one](https://aistudio.google.com/apikey)). Optional: `OPENAI_API_KEY` for the chat fallback.
@@ -109,6 +113,9 @@ npm run dev
 | `OPENAI_API_KEY` | No | Chat/verify fallback only |
 | `NEXT_PUBLIC_BRAND_*` | No | Overrides the Grounded Docs defaults |
 | `CORPUS_DIR` | No | Default `corpus` |
+| `ANALYTICS_URL` | No | Forwards each event as JSON. The first-party log works without it |
+| `PLAUSIBLE_DOMAIN` | No | Optional Plausible custom event |
+| `VERCEL_ANALYTICS_URL` | No | Optional extra JSON POST. No analytics package is bundled |
 
 ## Corpus
 
@@ -134,13 +141,14 @@ Details: [`corpus/README.md`](./corpus/README.md).
 | `tests/qm.test.ts` | DE/EN corpus split, German prompt, demo-question doc |
 | `tests/fixtures/qm-claims.json` | German and English verifier claims |
 | `tests/llm.test.ts` | Gemini retry / OpenAI fallback classification |
+| `tests/analytics.test.ts` | Event schema, chip-order assignment, JSONL log |
 
 GitHub Actions (`.github/workflows/ci.yml`) runs those tests and `npm run build`. The workflow still runs the separate [citebot-evals](https://github.com/jakob-alexander2000/citebot-evals) fixture job. That repository is not part of this product.
 
 ## Layout
 
 ```
-app/                 # home, /ask, /handbook, /harness, /api/chat
+app/                 # home, /ask, /handbook, /harness, /growth, /api/chat, /api/events
 components/          # chat, language switch, evidence, handbook
 lib/                 # locale, agent loop, tools, rag, verify
 corpus/de corpus/en  # QM handbook

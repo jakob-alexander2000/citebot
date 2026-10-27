@@ -1,8 +1,10 @@
+import { cookies } from "next/headers";
 import { Suspense } from "react";
 import { Chat } from "@/components/Chat";
 import { SiteHeader } from "@/components/SiteHeader";
-import { getBrand } from "@/lib/brand";
+import { brandSkin, getBrand } from "@/lib/brand";
 import { listHandbookDocs } from "@/lib/docs";
+import { assignChipOrder, CHIP_ORDER_COOKIE, type ChipOrderVariant } from "@/lib/experiment";
 import type { Locale } from "@/lib/locale";
 import { ui } from "@/lib/messages";
 import { getLocaleState } from "@/lib/request-locale";
@@ -13,7 +15,15 @@ function clip(s: string, n = 90): string {
   return s.length > n ? `${s.slice(0, n - 1).trimEnd()}…` : s;
 }
 
-async function ChatWithTopics({ locale }: { locale: Locale }) {
+async function ChatWithTopics({
+  locale,
+  chipVariant,
+  assignChip,
+}: {
+  locale: Locale;
+  chipVariant: ChipOrderVariant | null;
+  assignChip: boolean;
+}) {
   let topics: { title: string; desc: string }[] = [];
   try {
     const docs = await listHandbookDocs({ locale });
@@ -24,7 +34,21 @@ async function ChatWithTopics({ locale }: { locale: Locale }) {
   } catch {
     topics = [];
   }
-  return <Chat key={locale} topics={topics} locale={locale} />;
+  return (
+    <Chat
+      key={locale}
+      topics={topics}
+      locale={locale}
+      chipVariant={chipVariant}
+      assignChip={assignChip}
+    />
+  );
+}
+
+async function chipExperiment(): Promise<{ variant: ChipOrderVariant | null; fresh: boolean }> {
+  if (brandSkin() !== "craft") return { variant: null, fresh: false };
+  const jar = await cookies();
+  return assignChipOrder(jar.get(CHIP_ORDER_COOKIE)?.value, Math.random());
 }
 
 export async function generateMetadata() {
@@ -38,11 +62,20 @@ export async function generateMetadata() {
 
 export default async function AskPage() {
   const { locale, source } = await getLocaleState();
+  const experiment = await chipExperiment();
   return (
     <main className="flex min-h-full flex-1 flex-col">
       <SiteHeader active="chat" locale={locale} source={source} />
-      <Suspense fallback={<Chat topics={[]} locale={locale} />}>
-        <ChatWithTopics locale={locale} />
+      <Suspense
+        fallback={
+          <Chat topics={[]} locale={locale} chipVariant={experiment.variant} assignChip={false} />
+        }
+      >
+        <ChatWithTopics
+          locale={locale}
+          chipVariant={experiment.variant}
+          assignChip={experiment.fresh}
+        />
       </Suspense>
     </main>
   );
