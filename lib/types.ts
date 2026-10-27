@@ -37,8 +37,22 @@ export type Verification = {
   claims: EvidenceClaim[];
 };
 
+/** One visible step in the ask loop (plan, tool, draft, or a hard stop). */
+export type AgentStep = {
+  kind: "plan" | "tool" | "draft" | "stop";
+  /** Tool name when kind is "tool". */
+  tool?: string;
+  label: string;
+  /** Short result safe to show in the chat transcript. */
+  detail: string;
+};
+
 export type ChatResponse = {
   answer: string;
   citations: Citation[];
   verification: Verification;
+  /** Plan, tool calls, and draft — empty only if a caller bypasses the loop. */
+  steps: AgentStep[];
+  /** True when the loop hit the tool cap or a repeated call and could not draft. */
+  stoppedEarly: boolean;
 };

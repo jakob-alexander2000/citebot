@@ -1,42 +1,48 @@
+import { runAgentLoop } from "./agent";
+import { loadCorpusChunks } from "./corpus";
 import { CHAT_MODEL, getGemini } from "./embeddings";
-import { retrieve } from "./vector-store";
-import { verifyAnswer } from "./verify";
 import type { ChatResponse } from "./types";
-import { getBrand } from "./brand";
+import { ensureIndex, retrieve } from "./vector-store";
+import { verifyAnswer } from "./verify";
 
-export async function answerWithCitations(
-  question: string,
-): Promise<ChatResponse> {
-  const citations = await retrieve(question, 4);
+async function geminiGenerate(prompt: string): Promise<string> {
   const client = getGemini();
   const model = client.getGenerativeModel({
     model: CHAT_MODEL,
-    generationConfig: { temperature: 0.2 },
+    generationConfig: {
+      temperature: 0.2,
+      responseMimeType: "application/json",
+    },
   });
-
-  const context = citations
-    .map(
-      (c, i) =>
-        `[${i + 1}] id=${c.id} source=${c.source} title=${c.title}\n${c.snippet}`,
-    )
-    .join("\n\n");
-
-  const brand = getBrand();
-  const prompt = `You are ${brand.name}, a concise assistant for the ${brand.org} ${brand.corpusLabel}.
-Answer only from the provided context. If the context is insufficient, say you do not have that in the handbook.
-Cite sources inline using [n] markers that match the context numbers.
-Keep answers short (2–6 sentences) unless the user asks for detail.
-
-Question: ${question}
-
-Context:
-${context || "(no retrieved passages)"}`;
-
   const result = await model.generateContent(prompt);
-  const answer =
-    result.response.text()?.trim() || "I could not generate an answer.";
+  return result.response.text()?.trim() ?? "";
+}
 
-  const verification = await verifyAnswer(question, answer, citations);
+/**
+ * Ask path: capped handbook tool loop, then the shared verify harness.
+ * Index warm-up starts immediately and overlaps the first model turn.
+ * A failure is held on the promise so it is not an unhandled rejection
+ * when the model never searches.
+ */
+export async function answerWithCitations(
+  question: string,
+): Promise<ChatResponse> {
+  const chunksPromise = loadCorpusChunks();
+  const warmIndex: Promise<unknown> = ensureIndex().then(
+    () => undefined,
+    (err: unknown) => err,
+  );
+  const chunks = await chunksPromise;
 
-  return { answer, citations, verification };
+  return runAgentLoop({
+    question,
+    chunks,
+    generate: geminiGenerate,
+    search: async (query, topK = 4) => {
+      const failure = await warmIndex;
+      if (failure) throw failure;
+      return retrieve(query, topK);
+    },
+    verify: verifyAnswer,
+  });
 }

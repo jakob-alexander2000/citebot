@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { FormEvent, useRef, useState } from "react";
+import { AgentSteps } from "./AgentSteps";
 import { Citations } from "./Citations";
 import { EvidencePanel } from "./EvidencePanel";
-import type { Citation, Verification } from "@/lib/types";
+import type { AgentStep, Citation, Verification } from "@/lib/types";
 import { getBrand } from "@/lib/brand";
 
 type Message = {
@@ -13,6 +14,7 @@ type Message = {
   content: string;
   citations?: Citation[];
   verification?: Verification;
+  steps?: AgentStep[];
   error?: boolean;
 };
 
@@ -74,6 +76,7 @@ export function Chat({ topics }: { topics?: Topic[] } = {}) {
           content: data.answer as string,
           citations: (data.citations as Citation[]) || [],
           verification: data.verification as Verification | undefined,
+          steps: (data.steps as AgentStep[]) || [],
         },
       ]);
     } catch (err) {
@@ -116,9 +119,9 @@ export function Chat({ topics }: { topics?: Topic[] } = {}) {
                 {brand.taglineLine2}
               </h1>
               <p className="mt-4 max-w-md text-[15px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-                Document-grounded answers only — not a general chatbot. After
-                each answer a verify step checks claims against retrieved
-                passages.{" "}
+                Document-grounded answers only — not a general chatbot. A short
+                tool loop reads the handbook, then a verify step checks each
+                claim against those passages.{" "}
                 <Link
                   href="/handbook"
                   className="text-zinc-900 underline decoration-zinc-300 underline-offset-4 transition hover:decoration-zinc-900 dark:text-zinc-100 dark:decoration-zinc-600 dark:hover:decoration-zinc-300"
@@ -209,6 +212,9 @@ export function Chat({ topics }: { topics?: Topic[] } = {}) {
                   <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-zinc-800 dark:text-zinc-100">
                     {msg.content}
                   </p>
+                  {msg.steps && msg.steps.length > 0 ? (
+                    <AgentSteps steps={msg.steps} />
+                  ) : null}
                   {msg.citations && msg.citations.length > 0 ? (
                     <Citations citations={msg.citations} />
                   ) : null}
@@ -224,7 +230,7 @@ export function Chat({ topics }: { topics?: Topic[] } = {}) {
             {loading ? (
               <div className="flex items-center gap-2 text-sm text-zinc-500">
                 <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-zinc-400" />
-                Retrieving & verifying…
+                Reading the handbook…
               </div>
             ) : null}
             <div ref={bottomRef} />
