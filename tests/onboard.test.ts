@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { runAgentLoop } from "../lib/agent";
 import { loadCorpusChunks } from "../lib/corpus";
+import { loadOnboardChunks } from "../lib/onboard-corpus";
 import { answerOnboard } from "../lib/rag";
 import { WALKTHROUGH } from "../lib/onboard-copy";
 import {
@@ -17,7 +18,6 @@ import {
   handoffMarkdown,
   handoffRun,
   handoffTicket,
-  loadOnboardChunks,
   onboardConfigFromCookieHeader,
   onboardCookieAssignment,
   parseHandoffRuns,
