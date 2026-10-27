@@ -10,7 +10,7 @@ import { getBrand } from "./brand";
 
 const VERDICTS = new Set<ClaimVerdict>(["pass", "fail", "unsupported"]);
 
-function summarize(claims: EvidenceClaim[]): VerificationSummary {
+export function summarizeClaims(claims: EvidenceClaim[]): VerificationSummary {
   if (claims.length === 0) return "ungrounded";
   const passes = claims.filter((c) => c.verdict === "pass").length;
   const fails = claims.filter((c) => c.verdict === "fail").length;
@@ -19,7 +19,11 @@ function summarize(claims: EvidenceClaim[]): VerificationSummary {
   return "mixed";
 }
 
-function parseClaims(raw: string, citations: Citation[]): EvidenceClaim[] {
+/** Parse verifier JSON (or a blob that contains it) into claims. No network. */
+export function parseVerifierClaims(
+  raw: string,
+  citations: Citation[],
+): EvidenceClaim[] {
   const start = raw.indexOf("{");
   const end = raw.lastIndexOf("}");
   if (start < 0 || end <= start) return [];
@@ -128,7 +132,7 @@ ${context || "(no retrieved passages)"}`;
   try {
     const result = await model.generateContent(prompt);
     const text = result.response.text()?.trim() || "";
-    const claims = parseClaims(text, citations);
+    const claims = parseVerifierClaims(text, citations);
     if (claims.length === 0) {
       return {
         summary: "ungrounded",
@@ -141,7 +145,7 @@ ${context || "(no retrieved passages)"}`;
         ],
       };
     }
-    return { summary: summarize(claims), claims };
+    return { summary: summarizeClaims(claims), claims };
   } catch (err) {
     const message = err instanceof Error ? err.message : "verify failed";
     return {

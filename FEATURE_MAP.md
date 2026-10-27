@@ -17,11 +17,14 @@ A correct “not in the handbook” refusal counts as `pass` (the gap is real). 
 
 | Piece | Path |
 |-------|------|
-| Types | `lib/types.ts` (`EvidenceClaim`, `Verification`) |
+| Types | `lib/types.ts` (`EvidenceClaim`, `Verification`, `AgentStep`) |
+| Agent loop | `lib/agent.ts` → `runAgentLoop()` (max 3 tool rounds) |
+| Tools | `lib/tools.ts` — `search_handbook`, `list_topics`, `get_section`, `quote_check` |
 | Verify logic | `lib/verify.ts` → `verifyAnswer()` |
-| Wired after RAG | `lib/rag.ts` → `answerWithCitations()` |
-| API | `app/api/chat/route.ts` (unchanged shape + `verification`) |
-| UI | `components/EvidencePanel.tsx` (+ `Chat.tsx`) |
+| Wired after the draft | `lib/rag.ts` → `answerWithCitations()` |
+| API | `app/api/chat/route.ts` (same route; response adds `steps`, `stoppedEarly`) |
+| UI | `components/AgentSteps.tsx`, `components/EvidencePanel.tsx`, `Chat.tsx` |
+| Fixture tests | `tests/` · `npm test` (no Gemini) |
 | Writeup | `/harness` |
 
 **How to drive**
@@ -37,11 +40,22 @@ A correct “not in the handbook” refusal counts as `pass` (the gap is real). 
 3. `npm run build` must succeed.
 4. Live: https://citebot-chi.vercel.app
 
+## Agent loop
+
+**What it does**  
+Each question is plan → at most three corpus tools → draft → the verify harness above. The chat shows tool names and a one-line result. A further tool request stops with a clear message.
+
+**How to verify**
+
+1. `npm test` — fixture model, no `GEMINI_API_KEY`. Includes the 3-round cap and a repeated-call stop.
+2. With a key: ask a PTO question and confirm **Steps** lists `search_handbook` (or a sibling tool) and the Evidence panel still shows pass / fail.
+3. CI: `.github/workflows/ci.yml` plus [citebot-evals](https://github.com/jakob-alexander2000/citebot-evals) (`npm run eval`, 18/18).
+
 ## Intentionally not built
 
 - Multi-agent “judge swarm”
+- Web search or shell tools
 - New product name / Electron desktop
-- Eval suite as a separate app (next successive bet)
 
 ## White-label (env brand + corpus)
 

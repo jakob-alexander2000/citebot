@@ -10,7 +10,7 @@ Live: [citebot-chi.vercel.app](https://citebot-chi.vercel.app)
 
 ## Verify harness
 
-After each answer, CiteBot runs a shared verify step (`lib/verify.ts`) that checks claims against retrieved handbook chunks and shows an **Evidence** panel (pass / fail / unsupported). See [FEATURE_MAP.md](./FEATURE_MAP.md) and the public writeup at [/harness](https://citebot-chi.vercel.app/harness).
+After each answer, CiteBot runs a shared verify step (`lib/verify.ts`) that checks claims against the handbook passages the agent tools returned, and shows an **Evidence** panel (pass / fail / unsupported). See [FEATURE_MAP.md](./FEATURE_MAP.md) and the public writeup at [/harness](https://citebot-chi.vercel.app/harness).
 
 **Try:** ask about PTO days (expect passes) then “What’s our office dog’s name?” (expect refusal / unsupported — not a fake grounded answer).
 
@@ -44,6 +44,23 @@ Example env: [`examples/acme-handbook.env`](./examples/acme-handbook.env). Full 
 - Put `GEMINI_API_KEY` only in `.env.local` or Vercel Environment Variables (server-only). **Never commit keys.** Prefer a dedicated AI Studio key with a spend alert if billing is enabled.
 - Do not prefix the API key with `NEXT_PUBLIC_` — it must stay on the server (`/api/chat`). Brand vars *are* `NEXT_PUBLIC_` (not secrets).
 
+## Agent loop
+
+`POST /api/chat` runs one capped loop (`lib/agent.ts`), then the existing verifier:
+
+1. **Plan** — the model returns a single JSON action (a tool call, or an answer once it has passages).
+2. **Tools** — at most **3** calls, handbook only:
+   - `search_handbook` — embedding search over the corpus (the same retriever as before)
+   - `list_topics` — document titles and section names
+   - `get_section` — one section by id, file, or title
+   - `quote_check` — whether a claimed quote appears in the text
+3. **Draft** — a short answer from those passages. If the model answers before any lookup, the loop runs `search_handbook` on the question first.
+4. **Verify** — `verifyAnswer` scores claims against the passages the tools returned.
+
+The chat shows a quiet **Steps** list (tool name + one-line result). The Evidence panel stays the pass / fail surface. A fourth tool request, or the same call twice, does not run. If the model still will not answer, the loop stops with a clear message instead of spinning.
+
+No web search. No shell. No multi-agent framework.
+
 ## Architecture (short)
 
 ```
@@ -51,17 +68,20 @@ corpus/*.md  →  chunk  →  Gemini embeddings (gemini-embedding-001)
                               ↓
                      local JSON vector cache (.cache/embeddings-gemini-v2.json)
                               ↓
-question → embed → cosine top-k → Gemini answer + citation chips
+question → plan → up to 3 handbook tools → draft
                               ↓
-                     verifyAnswer(claims vs chunks) → evidence panel
+                     verifyAnswer(claims vs those passages)
+                              ↓
+                     answer + citations + evidence + steps
 ```
 
 - **App:** Next.js App Router, TypeScript, Tailwind
 - **Brand:** `lib/brand.ts` ← env
 - **Retrieval:** in-memory / on-disk JSON store (no database required for the demo)
-- **Generation + verify:** single shared path; UI shows expandable source chips + Evidence panel
+- **Agent:** `lib/agent.ts` + `lib/tools.ts`; production model and search are injected from `lib/rag.ts`
+- **Verify:** `lib/verify.ts`; UI shows steps, source chips, and the Evidence panel
 
-No multi-agent frameworks. No billing UI. No multi-tenant runtime (one Vercel project ≈ one client).
+No billing UI. No multi-tenant runtime (one Vercel project ≈ one client).
 
 ## Run locally
 
@@ -79,12 +99,13 @@ npm run dev
 | `npm run start` | Serve the build |
 | `npm run ingest` | Precompute embeddings into `.cache/` |
 | `npm run lint` | ESLint |
+| `npm test` / `npm run test:ci` | Fixture tests for tools, the agent loop, and verify — no API key |
 
 ### Env vars
 
 | Name | Required | Notes |
 |------|----------|--------|
-| `GEMINI_API_KEY` | Yes (for chat) | Google AI Studio — embeddings + chat |
+| `GEMINI_API_KEY` | Yes (for chat) | Google AI Studio — embeddings + chat. Not used by `npm test` |
 | `NEXT_PUBLIC_BRAND_*` | No | White-label UI (see `.env.example`) |
 | `CORPUS_DIR` | No | Default `corpus` |
 
@@ -92,13 +113,28 @@ npm run dev
 
 Under `corpus/` — a fake Berlin studio handbook (“Nordlicht Labs”). Swap the markdown files and re-run ingest (or delete `.cache/`) to point the app at client docs. Details: [`corpus/README.md`](./corpus/README.md).
 
+## Tests and CI
+
+`npm test` and `npm run test:ci` run the same Node test files. They mock the model with recorded turns in `tests/fixtures/` and call the real handbook tools (lexical search stand-in, plus the committed corpus). Nothing in that path calls Gemini.
+
+| File | What it locks |
+|------|----------------|
+| `tests/verify.test.ts` | Claim parsing and grounded / mixed / ungrounded |
+| `tests/tools.test.ts` | `search_handbook`, `list_topics`, `get_section`, `quote_check` |
+| `tests/agent-loop.test.ts` | Trace, the 3-round cap, repeated calls, verify handoff |
+| `tests/fixtures/` | Scripted model turns and verifier JSON |
+
+GitHub Actions (`.github/workflows/ci.yml`) runs those tests, `npm run build`, and the companion scorecard [citebot-evals](https://github.com/jakob-alexander2000/citebot-evals). That job checks out both repos and runs `npm run eval` in citebot-evals (fixture provider, 18/18, no live model). The companion suite is still the product-level grounded-vs-refusal table; this repo’s tests cover the agent loop itself.
+
 ## Repo layout
 
 ```
 app/            # App Router pages + /api/chat
-components/     # Chat, citations, evidence, handbook
-lib/            # brand, corpus, embeddings, vector store, rag, verify
+components/     # Chat, steps, citations, evidence, handbook
+lib/            # agent loop, tools, rag, verify, retrieval
 corpus/         # markdown docs (swap per client)
+tests/          # fixture tests (no Gemini)
+.github/        # CI: unit fixtures, build, citebot-evals
 examples/       # sample client env (Acme)
 scripts/ingest.ts
 WHITE_LABEL.md  # <30 min client deploy

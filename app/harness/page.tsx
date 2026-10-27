@@ -87,10 +87,17 @@ const EXAMPLES = [
 ] as const;
 
 const ARCH_STEPS = [
-  { step: "1", title: "Retrieve", body: "Embed the question; pull top-k Nordlicht chunks (cosine)." },
-  { step: "2", title: "Generate", body: "Answer only from those chunks — short, citeable prose." },
-  { step: "3", title: "Claim-split", body: "Verifier breaks the answer into atomic factual claims." },
-  { step: "4", title: "Verify", body: "Each claim vs the same chunks → pass / fail / unsupported." },
+  { step: "1", title: "Plan", body: "Choose a handbook tool — search, a section, topics, or a quote check." },
+  { step: "2", title: "Tools", body: "Run at most three corpus-only calls. No web, no shell." },
+  { step: "3", title: "Draft", body: "Write a short answer from the passages those tools returned." },
+  { step: "4", title: "Verify", body: "Split claims and mark each pass / fail / unsupported." },
+] as const;
+
+const TOOLS = [
+  { name: "search_handbook", body: "Passages for a query." },
+  { name: "list_topics", body: "Document titles and section names." },
+  { name: "get_section", body: "One section by id, file, or title." },
+  { name: "quote_check", body: "Whether a claimed quote appears in the text." },
 ] as const;
 
 export default function HarnessPage() {
@@ -133,10 +140,10 @@ export default function HarnessPage() {
           <p className="text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">
             One path for every answer:{" "}
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
-              claim → retrieve → verify → pass/fail
+              plan → tools → draft → verify
             </span>
-            . Generation and verification share the same retrieved set — no
-            second corpus, no hidden judge.
+            . The draft and the verifier share the passages those tools
+            returned — no second corpus, no hidden judge.
           </p>
           <ol className="grid gap-2 sm:grid-cols-2">
             {ARCH_STEPS.map((s) => (
@@ -181,6 +188,34 @@ export default function HarnessPage() {
               citebot-evals
             </Link>{" "}
             (18/18 fixture).
+          </p>
+        </section>
+
+        <section className="mt-10 space-y-3">
+          <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+            Agent loop
+          </h2>
+          <p className="text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">
+            Each question runs a short loop before the draft: a plan, then at
+            most three handbook tools. Verify still scores that draft against
+            the passages the tools returned. A fourth tool call, or the same
+            call twice, stops the loop with a clear message instead of spinning.
+            The transcript shows the tool names and a one-line result; the
+            Evidence panel stays the pass / fail surface.
+          </p>
+          <ul className="space-y-1.5 text-[13px] leading-relaxed text-zinc-600 dark:text-zinc-400">
+            {TOOLS.map((tool) => (
+              <li key={tool.name}>
+                <code className="font-mono text-[12px] text-zinc-800 dark:text-zinc-200">
+                  {tool.name}
+                </code>
+                <span> — {tool.body}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-[13px] leading-relaxed text-zinc-500">
+            Tools stay inside the corpus. Fixture tests for the loop and the
+            verifier run in CI with a scripted model — no live API key.
           </p>
         </section>
 

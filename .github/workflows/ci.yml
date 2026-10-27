@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Fixtures and build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Fixture tests
+        run: npm run test:ci
+
+      - name: Build
+        run: npm run build
+
+  handbook-evals:
+    name: citebot-evals fixtures
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout CiteBot
+        uses: actions/checkout@v4
+        with:
+          path: citebot
+
+      - name: Checkout citebot-evals
+        uses: actions/checkout@v4
+        with:
+          repository: jakob-alexander2000/citebot-evals
+          path: citebot-evals
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: citebot-evals/package-lock.json
+
+      - name: Install evals
+        working-directory: citebot-evals
+        run: npm ci
+
+      - name: Fixture scorecard
+        working-directory: citebot-evals
+        run: npm run eval

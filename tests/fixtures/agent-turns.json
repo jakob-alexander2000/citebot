@@ -1,0 +1,63 @@
+{
+  "ptoHappyPath": [
+    {
+      "action": "tool",
+      "plan": "Look up the paid vacation rule.",
+      "tool": "search_handbook",
+      "input": { "query": "full-time vacation days" }
+    },
+    {
+      "action": "answer",
+      "answer": "Full-time employees receive 30 days of paid vacation per calendar year [1]."
+    }
+  ],
+  "quoteThenAnswer": [
+    {
+      "action": "tool",
+      "tool": "quote_check",
+      "input": { "quote": "30 days of paid vacation" }
+    },
+    {
+      "action": "answer",
+      "answer": "Yes. Full-time employees receive 30 days of paid vacation per calendar year."
+    }
+  ],
+  "keepsCallingTools": [
+    {
+      "action": "tool",
+      "tool": "search_handbook",
+      "input": { "query": "vacation" }
+    },
+    {
+      "action": "tool",
+      "tool": "search_handbook",
+      "input": { "query": "vacation policy" }
+    },
+    {
+      "action": "tool",
+      "tool": "search_handbook",
+      "input": { "query": "pto days" }
+    },
+    {
+      "action": "tool",
+      "tool": "search_handbook",
+      "input": { "query": "still looking" }
+    }
+  ],
+  "repeatsSameCall": [
+    {
+      "action": "tool",
+      "tool": "search_handbook",
+      "input": { "query": "vacation days" }
+    },
+    {
+      "action": "tool",
+      "tool": "search_handbook",
+      "input": { "query": "vacation days" }
+    },
+    {
+      "action": "answer",
+      "answer": "Full-time employees receive 30 days of paid vacation per calendar year."
+    }
+  ]
+}

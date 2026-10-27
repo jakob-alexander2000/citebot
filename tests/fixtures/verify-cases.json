@@ -1,0 +1,42 @@
+[
+  {
+    "name": "all pass is grounded",
+    "raw": "{\"claims\":[{\"claim\":\"Full-time employees receive 30 days.\",\"verdict\":\"pass\",\"evidence\":\"30 days of paid vacation\",\"citationId\":\"pto-and-leave-1\"}]}",
+    "citationIds": ["pto-and-leave-1"],
+    "summary": "grounded",
+    "claims": 1,
+    "citationKept": true
+  },
+  {
+    "name": "mixed pass and unsupported",
+    "raw": "Here you go:\n{\"claims\":[{\"claim\":\"Chair budget is €400.\",\"verdict\":\"pass\",\"evidence\":\"€400 per year\"},{\"claim\":\"Daily lunches are covered.\",\"verdict\":\"unsupported\",\"evidence\":\"Not in the expense policy.\"}]}",
+    "citationIds": [],
+    "summary": "mixed",
+    "claims": 2,
+    "citationKept": false
+  },
+  {
+    "name": "all fail is ungrounded",
+    "raw": "{\"claims\":[{\"claim\":\"PTO is unlimited.\",\"verdict\":\"fail\",\"evidence\":\"The handbook says 30 days.\"}]}",
+    "citationIds": [],
+    "summary": "ungrounded",
+    "claims": 1,
+    "citationKept": false
+  },
+  {
+    "name": "unknown verdict and unknown citation id are dropped",
+    "raw": "{\"claims\":[{\"claim\":\"Kept.\",\"verdict\":\"PASS\",\"evidence\":\"ok\",\"citationId\":\"missing\"},{\"claim\":\"Dropped.\",\"verdict\":\"maybe\",\"evidence\":\"no\"}]}",
+    "citationIds": ["pto-and-leave-1"],
+    "summary": "grounded",
+    "claims": 1,
+    "citationKept": false
+  },
+  {
+    "name": "garbage returns no claims",
+    "raw": "not json at all",
+    "citationIds": [],
+    "summary": "ungrounded",
+    "claims": 0,
+    "citationKept": false
+  }
+]
