@@ -43,6 +43,8 @@ function summaryLabel(summary: VerificationSummary): string {
       return "Mixed — some claims not grounded";
     case "ungrounded":
       return "Not grounded in retrieved sources";
+    case "unavailable":
+      return "Provider unavailable — try again";
   }
 }
 

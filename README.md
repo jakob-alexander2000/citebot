@@ -40,9 +40,11 @@ Example env: [`examples/acme-handbook.env`](./examples/acme-handbook.env). Full 
 
 ## Cost / keys
 
-- Uses **Gemini Flash** + `gemini-embedding-001` — cheap enough for a pilot demo; AI Studio free tier usually covers light traffic.
-- Put `GEMINI_API_KEY` only in `.env.local` or Vercel Environment Variables (server-only). **Never commit keys.** Prefer a dedicated AI Studio key with a spend alert if billing is enabled.
-- Do not prefix the API key with `NEXT_PUBLIC_` — it must stay on the server (`/api/chat`). Brand vars *are* `NEXT_PUBLIC_` (not secrets).
+- Uses **Gemini Flash** (default `gemini-2.5-flash`) + `gemini-embedding-001` for retrieval — cheap enough for a pilot demo; AI Studio free tier usually covers light traffic.
+- Put `GEMINI_API_KEY` in `.env.local` or Vercel Environment Variables (server-only). **Never commit keys.** Prefer a dedicated AI Studio key with a spend alert if billing is enabled.
+- **Optional dual provider:** set `OPENAI_API_KEY` (and optionally `OPENAI_MODEL`, default `gpt-4o-mini`) so agent + verify steps automatically fall back when Gemini returns overload errors (503/429) or the chat model is missing. Embeddings stay Gemini-only; if `OPENAI_API_KEY` is absent, fallback is skipped and the server logs a warning.
+- Override chat/embed models with `GEMINI_CHAT_MODEL` / `GEMINI_EMBEDDING_MODEL` if needed.
+- Do not prefix API keys with `NEXT_PUBLIC_` — they must stay on the server (`/api/chat`). Brand vars *are* `NEXT_PUBLIC_` (not secrets).
 
 ## Agent loop
 

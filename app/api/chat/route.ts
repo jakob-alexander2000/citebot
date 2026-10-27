@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { ProviderUnavailableError } from "@/lib/llm";
 import { answerWithCitations } from "@/lib/rag";
 
 const bodySchema = z.object({
@@ -30,6 +31,16 @@ export async function POST(request: Request) {
     const result = await answerWithCitations(parsed.data.question);
     return NextResponse.json(result);
   } catch (err) {
+    if (err instanceof ProviderUnavailableError) {
+      console.warn("[citebot/chat] provider unavailable", err.attempts);
+      return NextResponse.json(
+        {
+          error:
+            "AI provider is temporarily unavailable. Please try again in a moment.",
+        },
+        { status: 503 },
+      );
+    }
     const message =
       err instanceof Error ? err.message : "Unexpected server error.";
     console.error("[citebot/chat]", err);

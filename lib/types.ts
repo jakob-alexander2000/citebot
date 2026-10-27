@@ -30,7 +30,11 @@ export type EvidenceClaim = {
   citationId?: string;
 };
 
-export type VerificationSummary = "grounded" | "mixed" | "ungrounded";
+export type VerificationSummary =
+  | "grounded"
+  | "mixed"
+  | "ungrounded"
+  | "unavailable";
 
 export type Verification = {
   summary: VerificationSummary;
