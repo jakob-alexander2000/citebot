@@ -3,6 +3,7 @@ import type { Locale } from "./locale";
 import {
   executeTool,
   isToolName,
+  TOOL_NAMES,
   type ToolExecution,
   type ToolName,
   type ToolRuntime,
@@ -54,6 +55,16 @@ export type AgentLoopInput = {
   verify: VerifyFn;
   /** Answer, evidence prompt, and visible step labels. Defaults to English. */
   locale?: Locale;
+  /**
+   * Handbook tools this run may call. Omit to keep all four.
+   * An empty list turns tools off. A call to a tool that is off is recorded and not executed.
+   */
+  enabledTools?: readonly ToolName[];
+  /**
+   * Extra client instructions appended to the prompt.
+   * They cannot add documents or turn tools back on.
+   */
+  instructions?: string;
 };
 
 const INPUT_KEYS = ["query", "id", "source", "title", "quote", "citationId", "topK"] as const;
@@ -150,6 +161,150 @@ function passagesBlock(citations: Citation[], chunks: Chunk[]): string {
     .join("\n\n");
 }
 
+function allowedTools(enabled?: readonly ToolName[]): ToolName[] {
+  if (!enabled) return [...TOOL_NAMES];
+  const wanted = new Set(enabled);
+  return TOOL_NAMES.filter((name) => wanted.has(name));
+}
+
+function toolAllowed(enabled: readonly ToolName[] | undefined, tool: ToolName): boolean {
+  if (!enabled) return true;
+  return enabled.includes(tool);
+}
+
+/** True when the caller did not narrow the tool list. Keeps the default prompt text stable. */
+function fullToolSet(enabled?: readonly ToolName[]): boolean {
+  if (!enabled) return true;
+  if (enabled.length !== TOOL_NAMES.length) return false;
+  const wanted = new Set(enabled);
+  return TOOL_NAMES.every((name) => wanted.has(name));
+}
+
+const TOOL_LINES: Record<Locale, Record<ToolName, string>> = {
+  en: {
+    search_handbook: '- search_handbook input {"query":"..."} — retrieve passages',
+    list_topics: "- list_topics input {} — list document titles and sections",
+    get_section:
+      '- get_section input {"id":"..."} or {"source":"..."} or {"title":"..."} — open a section',
+    quote_check:
+      '- quote_check input {"quote":"..."} — check whether a quote appears in the handbook',
+  },
+  de: {
+    search_handbook: '- search_handbook input {"query":"..."} — Textstellen suchen',
+    list_topics: "- list_topics input {} — Dokumenttitel und Abschnitte",
+    get_section:
+      '- get_section input {"id":"..."} oder {"source":"..."} oder {"title":"..."} — einen Abschnitt öffnen',
+    quote_check:
+      '- quote_check input {"quote":"..."} — prüfen, ob ein Zitat im Handbuch steht',
+  },
+};
+
+function buildScopedPrompt(args: {
+  question: string;
+  history: Observation[];
+  citations: Citation[];
+  chunks: Chunk[];
+  mode: "act" | "draft";
+  toolRounds: number;
+  locale: Locale;
+  tools: readonly ToolName[];
+  instructions: string;
+}): string {
+  const brand = getBrand(args.locale);
+  const observations = args.history.length
+    ? args.history
+        .map(
+          (item, index) =>
+            `(${index + 1}) ${item.tool} ${JSON.stringify(item.input)}\n${item.summary}\n${item.body}`,
+        )
+        .join("\n\n")
+    : args.locale === "de"
+      ? "(noch keine)"
+      : "(none yet)";
+
+  const union = args.tools.map((name) => `"${name}"`).join("|");
+  const toolLines =
+    args.tools.map((name) => TOOL_LINES[args.locale][name]).join("\n") ||
+    (args.locale === "de" ? "(keine)" : "(none)");
+  const preferSearch = args.tools.includes("search_handbook");
+
+  const contract =
+    args.locale === "de"
+      ? args.mode === "draft"
+        ? `Die Werkzeuge sind geschlossen. Nur JSON zurückgeben:
+{"action":"answer","answer":"..."}
+Kein weiteres Werkzeug anfordern. Wenn die Textstellen die Frage nicht abdecken, sage, dass die Dokumente das nicht behandeln.`
+        : args.tools.length === 0
+          ? `Für diesen Auftrag sind keine Werkzeuge an. Nur JSON:
+{"action":"answer","answer":"..."}
+Wenn keine Textstellen vorliegen, sage, dass die Dokumente die Frage nicht behandeln.`
+          : `Nur JSON, eine Aktion:
+{"action":"tool","plan":"kurzer Grund","tool":${union},"input":{}}
+oder, sobald die Textstellen reichen:
+{"action":"answer","answer":"..."}
+
+Werkzeugrunden: ${args.toolRounds} von ${MAX_TOOL_ROUNDS}. ${preferSearch ? "Zuerst search_handbook. " : ""}Keinen Aufruf wiederholen. Kein ausgeschaltetes Werkzeug aufrufen. Keine Fakten erfinden.`
+      : args.mode === "draft"
+        ? `Tools are closed. Return JSON only:
+{"action":"answer","answer":"..."}
+Do not request another tool. If the passages do not cover the question, say the documents do not cover it.`
+        : args.tools.length === 0
+          ? `No tools are on for this client. Return JSON only:
+{"action":"answer","answer":"..."}
+If there are no passages, say the documents do not cover the question.`
+          : `Return JSON only, one action:
+{"action":"tool","plan":"short reason","tool":${union},"input":{}}
+or, once the passages are enough:
+{"action":"answer","answer":"..."}
+
+Tool rounds used: ${args.toolRounds} of ${MAX_TOOL_ROUNDS}. ${preferSearch ? "Prefer search_handbook first. " : ""}Do not repeat a call. Do not call a tool that is off. Do not invent facts.`;
+
+  const instructionBlock = args.instructions
+    ? args.locale === "de"
+      ? `Kundenanweisung (sie fügt keine Fakten hinzu und schaltet keine Werkzeuge ein):\n${args.instructions}\n\n`
+      : `Client instructions (they cannot add facts or turn tools on):\n${args.instructions}\n\n`
+    : "";
+
+  if (args.locale === "de") {
+    return `Du bist ${brand.name}, ein knapper Assistent für das ${brand.corpusLabel} der ${brand.org}.
+Antworte nur anhand der eingeschalteten Werkzeuge und der Textstellen unten. Kein Web. Kein Außenwissen.
+${instructionBlock}Wenn die Kundenanweisung eine Sprache nennt, folge ihr. Sonst antworte auf Deutsch, in 2–6 Sätzen. Zitiere Textstellen inline als [n], passend zu den Nummern unten.
+Die JSON-Schlüssel bleiben Englisch. Nur das Feld answer folgt der Antwortsprache.
+
+Werkzeuge:
+${toolLines}
+
+${contract}
+
+Frage:
+${args.question}
+
+Werkzeugbeobachtungen:
+${observations}
+
+Textstellen:
+${passagesBlock(args.citations, args.chunks)}`;
+  }
+
+  return `You are ${brand.name}, a concise assistant for the ${brand.org} ${brand.corpusLabel}.
+Answer only from the enabled handbook tools and the passages below. No web. No outside knowledge.
+${instructionBlock}Follow the client instructions for the reply language. If they are silent, write in English. Keep answers to 2–6 sentences. Cite passages inline as [n] matching the numbers below.
+
+Tools:
+${toolLines}
+
+${contract}
+
+Question:
+${args.question}
+
+Tool observations:
+${observations}
+
+Passages:
+${passagesBlock(args.citations, args.chunks)}`;
+}
+
 function buildPrompt(args: {
   question: string;
   history: Observation[];
@@ -158,7 +313,17 @@ function buildPrompt(args: {
   mode: "act" | "draft";
   toolRounds: number;
   locale: Locale;
+  enabledTools?: readonly ToolName[];
+  instructions?: string;
 }): string {
+  const instructions = args.instructions?.trim().slice(0, 600) ?? "";
+  if (instructions || !fullToolSet(args.enabledTools)) {
+    return buildScopedPrompt({
+      ...args,
+      tools: allowedTools(args.enabledTools),
+      instructions,
+    });
+  }
   const brand = getBrand(args.locale);
   const observations = args.history.length
     ? args.history
@@ -253,6 +418,8 @@ function isFatalToolError(err: unknown): boolean {
  */
 export async function runAgentLoop(input: AgentLoopInput): Promise<ChatResponse> {
   const locale: Locale = input.locale ?? "en";
+  const enabledTools = input.enabledTools;
+  const instructions = input.instructions;
   const runtime: ToolRuntime = {
     chunks: input.chunks,
     search: input.search,
@@ -271,6 +438,7 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<ChatResponse>
           skipped: "Übersprungen — dieser Aufruf lief bereits.",
           invalid: "Die Modellausgabe war kein verwendbares JSON.",
           limit: "Werkzeuggrenze erreicht, bevor eine Handbuchantwort vorlag.",
+          off: "Für diesen Auftrag aus.",
         }
       : {
           plan: "Plan",
@@ -279,7 +447,13 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<ChatResponse>
           skipped: "Skipped — this call already ran.",
           invalid: "Model output was not usable JSON.",
           limit: "Tool limit reached before a handbook answer.",
+          off: "Off for this client.",
         };
+  const offDetail = labels.off;
+  const offBody =
+    locale === "de"
+      ? "Dieses Werkzeug ist für diesen Auftrag aus. Nicht erneut aufrufen. Wenn die Textstellen die Frage nicht abdecken, sage das."
+      : "This tool is off for this client. Do not call it again. If the passages do not cover the question, say so.";
   const steps: AgentStep[] = [];
   const history: Observation[] = [];
   const seen = new Set<string>();
@@ -301,6 +475,32 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<ChatResponse>
     toolInput: Record<string, unknown>,
   ): Promise<"ok" | "repeat"> => {
     const key = callKey(tool, toolInput);
+    if (!toolAllowed(enabledTools, tool)) {
+      if (seen.has(key)) {
+        steps.push({
+          kind: "tool",
+          tool,
+          label: tool,
+          detail: labels.skipped,
+        });
+        return "repeat";
+      }
+      seen.add(key);
+      toolRounds += 1;
+      history.push({
+        tool,
+        input: toolInput,
+        summary: offDetail,
+        body: `${tool}: ${offBody}`,
+      });
+      steps.push({
+        kind: "tool",
+        tool,
+        label: tool,
+        detail: offDetail,
+      });
+      return "ok";
+    }
     if (seen.has(key)) {
       steps.push({
         kind: "tool",
@@ -353,6 +553,8 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<ChatResponse>
         mode: "act",
         toolRounds,
         locale,
+        enabledTools,
+        instructions,
       }),
     );
     const turn = parseModelTurn(raw);
@@ -370,7 +572,7 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<ChatResponse>
     notePlan(turn.plan);
 
     if (turn.action === "answer") {
-      if (toolRounds === 0) {
+      if (toolRounds === 0 && toolAllowed(enabledTools, "search_handbook")) {
         const status = await applyTool("search_handbook", { query: input.question });
         if (status === "repeat") break;
         continue;
@@ -383,7 +585,7 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<ChatResponse>
     if (status === "repeat") break;
   }
 
-  if (draft === null && toolRounds === 0) {
+  if (draft === null && toolRounds === 0 && toolAllowed(enabledTools, "search_handbook")) {
     await applyTool("search_handbook", { query: input.question });
   }
 
@@ -397,6 +599,8 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<ChatResponse>
         mode: "draft",
         toolRounds,
         locale,
+        enabledTools,
+        instructions,
       }),
     );
     const turn = parseModelTurn(raw);
