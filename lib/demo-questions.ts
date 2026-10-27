@@ -1,3 +1,4 @@
+import { brandSkin } from "./brand";
 import type { Locale } from "./locale";
 
 export type DemoQuestion = {
@@ -49,6 +50,32 @@ export const DEMO_QUESTIONS: Record<Locale, readonly DemoQuestion[]> = {
     },
   ],
 };
+
+/** CiteBot chips. Facts from examples/nordlicht-corpus (the hire handbook). */
+export const NORDLICHT_QUESTIONS: readonly DemoQuestion[] = [
+  {
+    question:
+      "How many paid vacation days do full-time employees get, and when does unused PTO expire?",
+    expects: "30 days; unused PTO does not carry over past March 31",
+    source: "pto-and-leave.md",
+  },
+  {
+    question: "What is the limit for a client meal, and how soon must receipts be uploaded?",
+    expects: "€45 per person; within 14 days",
+    source: "expense-policy.md",
+  },
+  {
+    question: "When is Friday demo, and how long is each slot?",
+    expects: "15:00 Europe/Berlin; five minutes, hard stop",
+    source: "demo-day.md",
+  },
+];
+
+/** Chips for the active skin. CiteBot stays on the employee handbook. */
+export function activeDemoQuestions(locale: Locale): readonly DemoQuestion[] {
+  if (brandSkin() === "craft") return NORDLICHT_QUESTIONS;
+  return DEMO_QUESTIONS[locale];
+}
 
 /** Off-corpus check. The handbook names the role and not a person. */
 export const GAP_QUESTIONS: Record<Locale, string> = {

@@ -17,8 +17,15 @@ export function SiteHeader({ active, locale, source }: Props) {
   const brand = getBrand(locale);
   const copy = ui(locale);
 
+  const product = brand.skin === "product";
+  const craft = brand.skin === "craft";
+
   return (
-    <header className="sticky top-0 z-20 border-b border-zinc-200/80 bg-[var(--background)]/85 backdrop-blur-md dark:border-zinc-800/80">
+    <header
+      data-skin={brand.skin}
+      data-bilingual={brand.bilingual ? "true" : "false"}
+      className="sticky top-0 z-20 border-b border-zinc-200/80 bg-[var(--background)]/85 backdrop-blur-md dark:border-zinc-800/80"
+    >
       <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-6">
           <Link
@@ -41,9 +48,25 @@ export function SiteHeader({ active, locale, source }: Props) {
                 {brand.initial}
               </span>
             )}
-            <span className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+            <span
+              className={
+                product
+                  ? "font-serif text-[1.15rem] leading-none tracking-tight text-zinc-900 dark:text-zinc-50"
+                  : "text-sm font-medium tracking-tight text-zinc-900 dark:text-zinc-50"
+              }
+            >
               {brand.name}
             </span>
+            {product ? (
+              <span className="hidden text-[11px] font-medium uppercase tracking-[0.14em] text-zinc-400 md:inline">
+                {brand.corpusLabel}
+              </span>
+            ) : null}
+            {craft ? (
+              <span className="rounded-full border border-zinc-300 px-1.5 py-px font-mono text-[10px] uppercase tracking-wider text-zinc-500 dark:border-zinc-600">
+                Demo
+              </span>
+            ) : null}
           </Link>
           <nav className="hidden items-center gap-1 sm:flex" aria-label="Primary">
             <NavLink href="/ask" active={active === "chat"}>
@@ -80,7 +103,7 @@ export function SiteHeader({ active, locale, source }: Props) {
           >
             {copy.navHarness}
           </Link>
-          <LocaleSwitch locale={locale} source={source} />
+          {brand.bilingual ? <LocaleSwitch locale={locale} source={source} /> : null}
           {brand.githubUrl ? (
             <a
               href={brand.githubUrl}
