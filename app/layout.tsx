@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Analytics } from "@/components/Analytics";
 import { getBrand } from "@/lib/brand";
 import { ui } from "@/lib/messages";
 import { getLocaleState } from "@/lib/request-locale";
@@ -44,7 +45,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} h-full antialiased`}
       style={{ ["--brand-accent" as string]: brand.accent }}
     >
-      <body className="flex min-h-full flex-col font-sans">{children}</body>
+      <body className="flex min-h-full flex-col font-sans">
+        <Analytics locale={locale} skin={brand.skin} />
+        {children}
+      </body>
     </html>
   );
 }

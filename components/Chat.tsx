@@ -1,15 +1,36 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { AgentSteps } from "./AgentSteps";
 import { Citations } from "./Citations";
 import { EvidencePanel } from "./EvidencePanel";
-import type { AgentStep, Citation, Verification } from "@/lib/types";
+import { fingerprint } from "@/lib/analytics";
 import { getBrand } from "@/lib/brand";
 import { activeDemoQuestions } from "@/lib/demo-questions";
+import {
+  CHIP_ORDER_COOKIE,
+  CHIP_ORDER_EXPERIMENT,
+  CHIP_ORDER_MAX_AGE,
+  orderChips,
+  type ChipOrderVariant,
+} from "@/lib/experiment";
 import type { Locale } from "@/lib/locale";
 import { ui } from "@/lib/messages";
+import { track } from "@/lib/track";
+import type { AgentStep, Citation, Verification } from "@/lib/types";
+
+const sentAssignments = new Set<string>();
+
+function markSession(key: string): boolean {
+  try {
+    if (sessionStorage.getItem(key)) return false;
+    sessionStorage.setItem(key, "1");
+    return true;
+  } catch {
+    return true;
+  }
+}
 
 type Message = {
   id: string;
@@ -26,23 +47,60 @@ export type Topic = { title: string; desc: string };
 export function Chat({
   topics = [],
   locale,
+  chipVariant = null,
+  assignChip = false,
 }: {
   topics?: Topic[];
   locale: Locale;
+  chipVariant?: ChipOrderVariant | null;
+  assignChip?: boolean;
 }) {
   const TOPICS = topics;
   const brand = getBrand(locale);
   const copy = ui(locale);
   const craft = brand.skin === "craft";
-  const suggestions = activeDemoQuestions(locale).map((item) => item.question);
+  const reportedLocale: Locale = craft ? "en" : locale;
+  const suggestions = orderChips(activeDemoQuestions(locale), chipVariant);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  async function ask(question: string) {
+  useEffect(() => {
+    if (!assignChip || !chipVariant) return;
+    document.cookie = `${CHIP_ORDER_COOKIE}=${chipVariant}; Path=/; Max-Age=${CHIP_ORDER_MAX_AGE}; SameSite=Lax`;
+    if (sentAssignments.has(chipVariant)) return;
+    sentAssignments.add(chipVariant);
+    track("experiment_assignment", {
+      experiment: CHIP_ORDER_EXPERIMENT,
+      variant: chipVariant,
+    });
+  }, [assignChip, chipVariant]);
+
+  async function ask(question: string, meta: { via: "chip" | "typed"; source?: string }) {
     const trimmed = question.trim();
     if (!trimmed || loading) return;
+
+    const submit: Record<string, string | number> = {
+      via: meta.via,
+      chars: trimmed.length,
+      hash: fingerprint(trimmed),
+      skin: brand.skin,
+      locale: reportedLocale,
+    };
+    if (meta.source) submit.source = meta.source;
+    if (chipVariant) {
+      submit.experiment = CHIP_ORDER_EXPERIMENT;
+      submit.variant = chipVariant;
+    }
+    track("ask_submit", submit);
+    if (chipVariant && markSession("cb_conv_ask")) {
+      track("experiment_conversion", {
+        experiment: CHIP_ORDER_EXPERIMENT,
+        variant: chipVariant,
+        goal: "ask_submit",
+      });
+    }
 
     const userMsg: Message = {
       id: crypto.randomUUID(),
@@ -63,6 +121,7 @@ export function Chat({
       if (!res.ok) {
         throw new Error(data.error || `Request failed (${res.status})`);
       }
+      const verification = data.verification as Verification | undefined;
       setMessages((m) => [
         ...m,
         {
@@ -70,10 +129,38 @@ export function Chat({
           role: "assistant",
           content: data.answer as string,
           citations: (data.citations as Citation[]) || [],
-          verification: data.verification as Verification | undefined,
+          verification,
           steps: (data.steps as AgentStep[]) || [],
         },
       ]);
+      if (verification) {
+        const pass = verification.claims.filter((claim) => claim.verdict === "pass").length;
+        const fail = verification.claims.filter((claim) => claim.verdict === "fail").length;
+        const unsupported = verification.claims.filter(
+          (claim) => claim.verdict === "unsupported",
+        ).length;
+        const verify: Record<string, string | number> = {
+          summary: verification.summary,
+          pass,
+          fail,
+          unsupported,
+          claims: verification.claims.length,
+          skin: brand.skin,
+          locale: reportedLocale,
+        };
+        if (chipVariant) {
+          verify.experiment = CHIP_ORDER_EXPERIMENT;
+          verify.variant = chipVariant;
+        }
+        track("verify_result", verify);
+        if (chipVariant && markSession("cb_conv_verify")) {
+          track("experiment_conversion", {
+            experiment: CHIP_ORDER_EXPERIMENT,
+            variant: chipVariant,
+            goal: "verify",
+          });
+        }
+      }
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Something went wrong.";
@@ -96,7 +183,7 @@ export function Chat({
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
-    void ask(input);
+    void ask(input, { via: "typed" });
   }
 
   return (
@@ -184,23 +271,35 @@ export function Chat({
             </section>
             )}
 
-            <section>
+            <section data-chip-variant={chipVariant ?? "default"}>
               <h2 className="mb-3 text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
                 {copy.tryAsking}
               </h2>
               <div className={craft ? "flex flex-col items-start gap-2" : "flex flex-col gap-1.5"}>
-                {suggestions.map((s) => (
+                {suggestions.map((item, index) => (
                   <button
-                    key={s}
+                    key={item.question}
                     type="button"
-                    onClick={() => void ask(s)}
+                    data-chip-source={item.source}
+                    onClick={() => {
+                      track("ask_chip_click", {
+                        index,
+                        source: item.source,
+                        skin: brand.skin,
+                        locale: reportedLocale,
+                        ...(chipVariant
+                          ? { experiment: CHIP_ORDER_EXPERIMENT, variant: chipVariant }
+                          : {}),
+                      });
+                      void ask(item.question, { via: "chip", source: item.source });
+                    }}
                     className={
                       craft
                         ? "rounded-full border border-zinc-200 px-3.5 py-2 text-left text-sm text-zinc-800 transition hover:border-zinc-400 dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-zinc-500"
                         : "group flex items-center justify-between rounded-lg border border-transparent px-3 py-2.5 text-left text-sm text-zinc-700 transition hover:border-zinc-200 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:border-zinc-800 dark:hover:bg-zinc-900/60"
                     }
                   >
-                    <span>{s}</span>
+                    <span>{item.question}</span>
                     {craft ? null : (
                       <span className="text-zinc-300 transition group-hover:text-zinc-500 dark:text-zinc-600">
                         ↗
