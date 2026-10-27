@@ -8,7 +8,7 @@ The beachhead corpus is a fictional QM handbook for **Hartmann Fertigung GmbH** 
 
 ## Language
 
-The header switch is **DE | EN**.
+The header switch is **DE | EN** on Grounded Docs. A deploy branded CiteBot is English-only and hides the switch. Any other brand name is English-only until `NEXT_PUBLIC_BILINGUAL=true`.
 
 - First visit: `Accept-Language` (the same preference as `navigator.languages`).
 - After a choice: the `gd_locale` cookie, mirrored to `localStorage`, so a reload stays on that language.

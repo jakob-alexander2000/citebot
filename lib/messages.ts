@@ -1,3 +1,4 @@
+import { brandSkin, isBilingual } from "./brand";
 import type { Locale } from "./locale";
 
 export type UiCopy = {
@@ -7,8 +8,12 @@ export type UiCopy = {
   navAsk: string;
   navHandbook: string;
   navHarness: string;
+  /** Shown beside the corpus label when the product is bilingual. */
+  homeLocales: string;
   homeLead: string;
   homeAsk: string;
+  /** Ask-page headline for the craft demo. Product ask uses the brand tagline. */
+  askHeadline: string;
   homeHarness: string;
   homeHandbook: string;
   homeVerifyTitle: string;
@@ -45,9 +50,11 @@ const EN: UiCopy = {
   navAsk: "Ask",
   navHandbook: "Handbook",
   navHarness: "Harness",
+  homeLocales: "German and English",
   homeLead:
     "Ask the quality handbook in German or English. Answers stay inside those documents: a short tool loop reads the handbook, then a verify step checks each claim against the passages it used.",
   homeAsk: "Ask the handbook",
+  askHeadline: "Ask the quality handbook.",
   homeHarness: "How verify works",
   homeHandbook: "Handbook",
   homeVerifyTitle: "How verify works",
@@ -87,9 +94,11 @@ const DE: UiCopy = {
   navAsk: "Fragen",
   navHandbook: "Handbuch",
   navHarness: "Nachweis",
+  homeLocales: "Deutsch und Englisch",
   homeLead:
     "Fragen Sie das QM-Handbuch auf Deutsch oder Englisch. Antworten bleiben in diesen Dokumenten: eine kurze Werkzeugschleife liest das Handbuch, danach prüft ein Nachweis jede Aussage gegen die verwendeten Textstellen.",
   homeAsk: "Handbuch fragen",
+  askHeadline: "Fragen Sie das QM-Handbuch.",
   homeHarness: "So funktioniert der Nachweis",
   homeHandbook: "Handbuch",
   homeVerifyTitle: "So funktioniert der Nachweis",
@@ -124,6 +133,57 @@ const DE: UiCopy = {
   askMeta: (name) => `Fragen · ${name}`,
 };
 
+/** English chrome for a client deploy that has not opted into DE|EN. */
+const MONO_EN: UiCopy = {
+  ...EN,
+  homeLead:
+    "Ask the handbook. Answers stay inside those documents: a short tool loop reads the handbook, then a verify step checks each claim against the passages it used.",
+  askLead:
+    "Document-grounded answers only. The loop reads the handbook, then verify checks each claim against those passages.",
+  placeholder: "Ask the handbook…",
+  askHeadline: "Ask the handbook.",
+};
+
+/**
+ * CiteBot hire demo. English employee-handbook tone — not the QM product.
+ * Nordlicht specifics stay in brand env (org, corpus) and the demo chips.
+ */
+const CRAFT: UiCopy = {
+  ...EN,
+  homeLocales: "English",
+  homeLead:
+    "is a working demo over one employee handbook. It reads those pages, then checks each claim against the passage it used.",
+  homeAsk: "Try a question",
+  askHeadline: "What does the handbook say?",
+  homeHarness: "How the check works",
+  homeHandbook: "Read the pages",
+  homeVerifyTitle: "The check",
+  homeVerifyBody:
+    "After the draft, one step splits the answer into claims and marks each pass, fail, or unsupported against the same passages. If the page doesn't say it, a straight refusal counts as pass.",
+  homeHarnessLink: "how the check works",
+  homeTryTitle: "From the employee handbook",
+  covered: "In the handbook",
+  openHandbook: "Read the pages",
+  tryAsking: "Try one",
+  askLead:
+    "Questions stay inside this employee handbook. The loop reads a page, then verify checks the claim against that passage.",
+  readHandbook: "Read the pages",
+  howHarness: "How the check works",
+  placeholder: "Ask about time off, expenses, remote days…",
+  handbookTitle: "Employee handbook",
+  handbookKicker: "Demo",
+  handbookIntro: (count, name) =>
+    `The ${count} page${count === 1 ? "" : "s"} ${name} can cite in this demo.`,
+  metaTitle: (name) => `${name} — Employee handbook demo`,
+};
+
 export function ui(locale: Locale): UiCopy {
+  const skin = brandSkin();
+  const bilingual = isBilingual();
+  if (skin === "craft") {
+    if (bilingual && locale === "de") return DE;
+    return CRAFT;
+  }
+  if (!bilingual) return MONO_EN;
   return locale === "de" ? DE : EN;
 }

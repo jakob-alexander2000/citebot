@@ -12,7 +12,10 @@ export async function generateMetadata() {
   const brand = getBrand(locale);
   return {
     title: `${HARNESS[locale].kicker} · ${brand.name}`,
-    description: HARNESS[locale].metaDescription,
+    description:
+      brand.skin === "craft"
+        ? `How ${brand.name} checks answers against the ${brand.corpusLabel}.`
+        : HARNESS[locale].metaDescription,
   };
 }
 
@@ -20,6 +23,26 @@ export default async function HarnessPage() {
   const { locale, source } = await getLocaleState();
   const brand = getBrand(locale);
   const copy = HARNESS[locale];
+  const craft = brand.skin === "craft" && locale === "en";
+  const lead = craft
+    ? `${brand.name} reads the ${brand.org} ${brand.corpusLabel}. After the draft, one verify step scores each claim against the same retrieved passages — pass, fail, or unsupported — and shows the evidence under the citation chips.`
+    : copy.lead(brand.name, brand.org);
+  const tryItems = craft
+    ? [
+        {
+          label: "Time off",
+          body: "ask how many vacation days full-time employees get, and when unused PTO expires.",
+        },
+        {
+          label: "Expenses",
+          body: "ask the client-meal limit and how soon receipts must be uploaded.",
+        },
+        {
+          label: "Demo day",
+          body: "ask when Friday demo starts and how long a slot is.",
+        },
+      ]
+    : copy.tryItems;
 
   return (
     <main className="flex min-h-full flex-1 flex-col">
@@ -32,7 +55,7 @@ export default async function HarnessPage() {
           {copy.title}
         </h1>
         <p className="mt-4 text-[15px] leading-relaxed text-zinc-600 dark:text-zinc-400">
-          {copy.lead(brand.name, brand.org)}
+          {lead}
         </p>
 
         <section className="mt-10 space-y-3">
@@ -95,6 +118,7 @@ export default async function HarnessPage() {
           <p className="text-[13px] leading-relaxed text-zinc-500">{copy.testsNote}</p>
         </section>
 
+        {craft ? null : (
         <section className="mt-12 space-y-8">
           <div className="space-y-2">
             <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
@@ -137,13 +161,14 @@ export default async function HarnessPage() {
             </figure>
           ))}
         </section>
+        )}
 
         <section className="mt-12 space-y-3">
           <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
             {copy.tryTitle}
           </h2>
           <ul className="space-y-2 text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">
-            {copy.tryItems.map((item) => (
+            {tryItems.map((item) => (
               <li key={item.label}>
                 <span className="font-medium text-zinc-900 dark:text-zinc-100">
                   {item.label}:

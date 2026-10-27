@@ -23,8 +23,9 @@ Copy [`examples/acme-handbook.env`](./examples/acme-handbook.env) → `.env.loca
 | `NEXT_PUBLIC_BRAND_TAGLINE` / `_2` | Hero lines |
 | `NEXT_PUBLIC_BRAND_LOGO_URL` | `/logo.png` (file in `public/`) |
 | `GEMINI_API_KEY` | Google AI Studio key |
+| `NEXT_PUBLIC_BILINGUAL` | `true` to show DE\|EN. Unset: on for Grounded Docs, off for CiteBot and other names |
 
-Defaults without these = Grounded Docs and the Hartmann Fertigung QM handbook. Tagline, corpus label, footer, and description follow the DE/EN switch unless you set them here (a set value is used for both languages).
+Defaults without these = Grounded Docs and the Hartmann Fertigung QM handbook, with the DE|EN switch. Tagline, corpus label, footer, and description follow that switch unless you set them here (a set value is used for both languages). A brand named CiteBot is the English-only demo (no language switch). Any other name is English-only until `NEXT_PUBLIC_BILINGUAL=true`.
 
 ## 3. Swap corpus
 
@@ -53,7 +54,7 @@ URL: `https://{project-slug}.vercel.app`.
 ## 5. Verify
 
 1. Open the live URL — the header shows the client name and accent.
-2. Switch DE/EN. Ask a question from their docs; citation chips and the Evidence panel follow that language.
+2. If `NEXT_PUBLIC_BILINGUAL=true` (or the brand is Grounded Docs), switch DE/EN. Ask a question from their docs; citation chips and the Evidence panel follow that language. Otherwise the UI stays English.
 3. `/handbook` lists the documents for the active language. `/harness` explains the verify loop.
 
 Kept: Gemini chat with OpenAI fallback, verify harness, handbook browser.

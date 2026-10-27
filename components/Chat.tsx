@@ -7,7 +7,7 @@ import { Citations } from "./Citations";
 import { EvidencePanel } from "./EvidencePanel";
 import type { AgentStep, Citation, Verification } from "@/lib/types";
 import { getBrand } from "@/lib/brand";
-import { DEMO_QUESTIONS } from "@/lib/demo-questions";
+import { activeDemoQuestions } from "@/lib/demo-questions";
 import type { Locale } from "@/lib/locale";
 import { ui } from "@/lib/messages";
 
@@ -33,7 +33,8 @@ export function Chat({
   const TOPICS = topics;
   const brand = getBrand(locale);
   const copy = ui(locale);
-  const suggestions = DEMO_QUESTIONS[locale].map((item) => item.question);
+  const craft = brand.skin === "craft";
+  const suggestions = activeDemoQuestions(locale).map((item) => item.question);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -104,14 +105,35 @@ export function Chat({
         {messages.length === 0 ? (
           <div className="flex flex-1 flex-col justify-center gap-10">
             <div className="max-w-xl">
-              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-                {brand.org} · {brand.corpusLabel}
-              </p>
-              <h1 className="mt-3 font-serif text-[2.35rem] leading-[1.15] tracking-tight text-zinc-900 dark:text-zinc-50">
-                {brand.tagline}
-                <br />
-                {brand.taglineLine2}
-              </h1>
+              {craft ? (
+                <>
+                  <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-zinc-500">
+                    Demo · {brand.org}
+                  </p>
+                  <h1 className="mt-3 text-[2rem] font-medium leading-tight tracking-tight text-zinc-900 dark:text-zinc-50">
+                    {copy.askHeadline}
+                  </h1>
+                </>
+              ) : (
+                <>
+                  <p
+                    className="text-[11px] font-semibold uppercase tracking-[0.22em]"
+                    style={{ color: "var(--brand-accent)" }}
+                  >
+                    {brand.name}
+                  </p>
+                  <h1 className="mt-3 font-serif text-5xl leading-[0.98] tracking-tight text-zinc-900 dark:text-zinc-50">
+                    {brand.tagline}
+                  </h1>
+                  <p className="mt-2 font-serif text-xl text-zinc-500 dark:text-zinc-400">
+                    {brand.taglineLine2}
+                  </p>
+                  <p className="mt-3 text-sm font-medium text-zinc-800 dark:text-zinc-200">
+                    {brand.org}
+                    <span className="font-normal text-zinc-400"> · {brand.corpusLabel}</span>
+                  </p>
+                </>
+              )}
               <p className="mt-4 max-w-md text-[15px] leading-relaxed text-zinc-500 dark:text-zinc-400">
                 {copy.askLead}{" "}
                 <Link
@@ -166,18 +188,24 @@ export function Chat({
               <h2 className="mb-3 text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
                 {copy.tryAsking}
               </h2>
-              <div className="flex flex-col gap-1.5">
+              <div className={craft ? "flex flex-col items-start gap-2" : "flex flex-col gap-1.5"}>
                 {suggestions.map((s) => (
                   <button
                     key={s}
                     type="button"
                     onClick={() => void ask(s)}
-                    className="group flex items-center justify-between rounded-lg border border-transparent px-3 py-2.5 text-left text-sm text-zinc-700 transition hover:border-zinc-200 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:border-zinc-800 dark:hover:bg-zinc-900/60"
+                    className={
+                      craft
+                        ? "rounded-full border border-zinc-200 px-3.5 py-2 text-left text-sm text-zinc-800 transition hover:border-zinc-400 dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-zinc-500"
+                        : "group flex items-center justify-between rounded-lg border border-transparent px-3 py-2.5 text-left text-sm text-zinc-700 transition hover:border-zinc-200 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:border-zinc-800 dark:hover:bg-zinc-900/60"
+                    }
                   >
                     <span>{s}</span>
-                    <span className="text-zinc-300 transition group-hover:text-zinc-500 dark:text-zinc-600">
-                      ↗
-                    </span>
+                    {craft ? null : (
+                      <span className="text-zinc-300 transition group-hover:text-zinc-500 dark:text-zinc-600">
+                        ↗
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
