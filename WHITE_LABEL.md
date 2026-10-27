@@ -53,7 +53,7 @@ URL: `https://{project-slug}.vercel.app`.
 ## 5. Verify
 
 1. Open the live URL — header shows the client name + accent, not “CiteBot”.
-2. Ask a question from their docs; citation chips + Evidence panel still work.
+2. Open **Ask** (`/ask`) and ask a question from their docs; citation chips + Evidence panel still work.
 3. `/handbook` lists their markdown; `/harness` explains the verify loop.
 
 Kept from the base product: Gemini RAG, verify harness, handbook browser.

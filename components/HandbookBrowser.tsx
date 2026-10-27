@@ -40,7 +40,7 @@ export function HandbookBrowser({ docs }: { docs: HandbookDocPayload[] }) {
             The {docs.length} document{docs.length === 1 ? "" : "s"}{" "}
             {brand.name} retrieves from. Ask them on the{" "}
             <Link
-              href="/"
+              href="/ask"
               className="text-zinc-800 underline decoration-zinc-300 underline-offset-2 dark:text-zinc-200"
             >
               chat

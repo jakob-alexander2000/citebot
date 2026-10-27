@@ -47,7 +47,7 @@ function summaryLabel(summary: VerificationSummary): string {
 }
 
 /**
- * Faithful static recreation of EvidencePanel for hire writeup screenshots.
+ * Faithful static recreation of EvidencePanel for the harness writeup.
  * Same chrome / verdict colors as the live chat panel.
  */
 export function EvidenceSnapshot({

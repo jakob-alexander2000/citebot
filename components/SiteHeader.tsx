@@ -2,18 +2,24 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { getBrand } from "@/lib/brand";
 
+type NavId = "home" | "chat" | "handbook" | "harness";
+
 type Props = {
-  active?: "chat" | "handbook" | "harness";
+  active?: NavId;
 };
 
-export function SiteHeader({ active = "chat" }: Props) {
+export function SiteHeader({ active }: Props) {
   const brand = getBrand();
 
   return (
     <header className="sticky top-0 z-20 border-b border-zinc-200/80 bg-[var(--background)]/85 backdrop-blur-md dark:border-zinc-800/80">
       <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2.5">
+          <Link
+            href="/"
+            aria-current={active === "home" ? "page" : undefined}
+            className="flex items-center gap-2.5"
+          >
             {brand.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -33,8 +39,8 @@ export function SiteHeader({ active = "chat" }: Props) {
               {brand.name}
             </span>
           </Link>
-          <nav className="hidden items-center gap-1 sm:flex">
-            <NavLink href="/" active={active === "chat"}>
+          <nav className="hidden items-center gap-1 sm:flex" aria-label="Primary">
+            <NavLink href="/ask" active={active === "chat"}>
               Ask
             </NavLink>
             <NavLink href="/handbook" active={active === "handbook"}>
@@ -47,8 +53,24 @@ export function SiteHeader({ active = "chat" }: Props) {
         </div>
         <div className="flex items-center gap-3">
           <Link
+            href="/ask"
+            aria-current={active === "chat" ? "page" : undefined}
+            className={
+              active === "chat"
+                ? "text-xs font-medium text-zinc-900 sm:hidden dark:text-zinc-100"
+                : "text-xs text-zinc-500 transition hover:text-zinc-900 sm:hidden dark:hover:text-zinc-100"
+            }
+          >
+            Ask
+          </Link>
+          <Link
             href="/harness"
-            className="text-xs text-zinc-500 transition hover:text-zinc-900 sm:hidden dark:hover:text-zinc-100"
+            aria-current={active === "harness" ? "page" : undefined}
+            className={
+              active === "harness"
+                ? "text-xs font-medium text-zinc-900 sm:hidden dark:text-zinc-100"
+                : "text-xs text-zinc-500 transition hover:text-zinc-900 sm:hidden dark:hover:text-zinc-100"
+            }
           >
             Harness
           </Link>
@@ -80,6 +102,7 @@ function NavLink({
   return (
     <Link
       href={href}
+      aria-current={active ? "page" : undefined}
       className={
         active
           ? "rounded-md bg-zinc-900 px-2.5 py-1 text-xs font-medium text-white dark:bg-zinc-100 dark:text-zinc-900"

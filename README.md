@@ -2,7 +2,7 @@
 
 **Ask a handbook. Get answers with citation chips.**
 
-CiteBot is a small RAG demo: upload is mocked by a committed sample corpus, retrieval is embedding search, and every answer surfaces the passages it used. Built by [Jakob Alex](https://github.com/jakob-alexander2000) (Berlin) as a week-one technical proof — product taste over framework theater.
+CiteBot is a small RAG demo: upload is mocked by a committed sample corpus, retrieval is embedding search, and every answer surfaces the passages it used. Built by [Jakob Alex](https://github.com/jakob-alexander2000) (Berlin).
 
 Live: [citebot-chi.vercel.app](https://citebot-chi.vercel.app)
 
@@ -17,11 +17,11 @@ After each answer, CiteBot runs a shared verify step (`lib/verify.ts`) that chec
 ## 30-second demo script
 
 1. `npm install && cp .env.example .env.local` — paste a **Google AI Studio** API key ([get one](https://aistudio.google.com/apikey)).
-2. `npm run dev` → open http://localhost:3000
+2. `npm run dev` → open http://localhost:3000/ask
 3. Click **“How many PTO days do full-time employees get?”**
 4. Expand a citation chip — you should see `pto-and-leave.md` and the “30 days” passage.
 5. Ask something off-corpus (“What’s our office dog’s name?”) — CiteBot should refuse cleanly; the Evidence panel should not mark a dog name as pass.
-6. Open [/harness](https://citebot-chi.vercel.app/harness) for the hiring-manager writeup.
+6. Open [/harness](https://citebot-chi.vercel.app/harness) for how verify works.
 
 First question triggers one-time ingest (embeddings cached under `.cache/`). Optional: `npm run ingest` beforehand.
 
@@ -40,7 +40,7 @@ Example env: [`examples/acme-handbook.env`](./examples/acme-handbook.env). Full 
 
 ## Cost / keys
 
-- Uses **Gemini Flash** + `gemini-embedding-001` — cheap enough for a portfolio / pilot demo; AI Studio free tier usually covers light traffic.
+- Uses **Gemini Flash** + `gemini-embedding-001` — cheap enough for a pilot demo; AI Studio free tier usually covers light traffic.
 - Put `GEMINI_API_KEY` only in `.env.local` or Vercel Environment Variables (server-only). **Never commit keys.** Prefer a dedicated AI Studio key with a spend alert if billing is enabled.
 - Do not prefix the API key with `NEXT_PUBLIC_` — it must stay on the server (`/api/chat`). Brand vars *are* `NEXT_PUBLIC_` (not secrets).
 
