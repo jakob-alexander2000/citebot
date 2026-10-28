@@ -116,6 +116,18 @@ export default async function HarnessPage() {
             ))}
           </ul>
           <p className="text-[13px] leading-relaxed text-zinc-500">{copy.testsNote}</p>
+          {craft ? (
+            <p className="text-[13px] leading-relaxed text-zinc-500">
+              The golden questions, and how a failed check looks, are on{" "}
+              <Link
+                href="/evals"
+                className="text-zinc-800 underline decoration-zinc-300 underline-offset-4 dark:text-zinc-200"
+              >
+                Evals
+              </Link>
+              . <code className="font-mono text-[12px]">npm run eval</code> scores them with no API key.
+            </p>
+          ) : null}
         </section>
 
         {craft ? null : (
