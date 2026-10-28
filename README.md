@@ -28,6 +28,27 @@ Six screenshot questions (3 DE, 3 EN) are in [docs/demo-questions.md](./docs/dem
 
 After each answer, a shared verify step (`lib/verify.ts`) checks claims against the handbook passages the agent tools returned and shows an **Evidence** panel (pass / fail / unsupported). The technical write-up is at [/harness](/harness). See [FEATURE_MAP.md](./FEATURE_MAP.md).
 
+## CiteBot eval harness
+
+The English handbook demo scores a fixed question set.
+
+`npm run eval` runs the agent loop on `evals/golden.json` against `examples/nordlicht-corpus`, then scores each draft with the verify tokens `pass`, `fail`, and `unsupported`. No API key. CI runs that command on every pull request.
+
+A case **passes** when every check holds: the answer states the handbook fact, the citation is the file that contains it, and the verify summary matches the case. A correct “the pages do not cover this” refusal is a pass. One case is a bad draft on purpose (25 vacation days against a page that says 30). That case passes only when verify marks the figure **fail**.
+
+A case **fails** when any check misses. The usual shapes:
+
+| Check | What you see |
+|-------|----------------|
+| `answer-includes` | The draft never states the required figure. |
+| `citation-source` | The chips cite a different file. |
+| `answer-excludes` | The draft repeats a false premise or an invented name. |
+| `refusal` | A gap question gets a specific story instead of a refusal. |
+| `verification-summary` | Verify’s summary is not the one the case allows. A grounded question came back mixed or ungrounded, or the wrong-count draft was marked pass. |
+| `loop-finished` | The loop stopped before a draft, or the search never ran. |
+
+The same write-up is the CiteBot page at `/evals`, linked beside Harness. Grounded Docs does not add that link. The workflow still runs the sibling [citebot-evals](https://github.com/jakob-alexander2000/citebot-evals) fixture scorecard, which replays saved replies rather than the agent loop.
+
 ## Events
 
 `POST /api/events` records page views (home, ask, harness, handbook, growth), chip clicks, submits, and verify counts. The question itself is not stored: an 8-character hash and a character count. CiteBot runs one chip-order experiment on `/ask` (`cb_chip_order`). Grounded Docs does not. The write-up, including how to read the tally, is at [/growth](/growth). Optional forward: `ANALYTICS_URL`, `PLAUSIBLE_DOMAIN`, `VERCEL_ANALYTICS_URL`.
@@ -111,7 +132,8 @@ npm run dev
 | `npm run start` | Serve the build |
 | `npm run ingest` | Precompute embeddings into `.cache/` |
 | `npm run lint` | ESLint |
-| `npm test` / `npm run test:ci` | Fixture tests — no API key |
+| `npm run eval` | Golden-question scorecard — agent loop + verify, no API key |
+| `npm test` / `npm run test:ci` | Fixture tests, including the scorecard — no API key |
 
 | Env | Required | Notes |
 |-----|----------|--------|
@@ -149,17 +171,19 @@ Details: [`corpus/README.md`](./corpus/README.md).
 | `tests/llm.test.ts` | Gemini retry / OpenAI fallback classification |
 | `tests/analytics.test.ts` | Event schema, chip-order assignment, JSONL log |
 | `tests/onboard.test.ts` | Onboard config, tool filter, guardrail, handoff |
+| `tests/eval-harness.test.ts` | Golden set, verify fail on a wrong figure, CiteBot-only eval link |
 
-GitHub Actions (`.github/workflows/ci.yml`) runs those tests and `npm run build`. The workflow still runs the separate [citebot-evals](https://github.com/jakob-alexander2000/citebot-evals) fixture job. That repository is not part of this product.
+GitHub Actions (`.github/workflows/ci.yml`) runs those tests, `npm run eval`, and `npm run build`. It also runs the sibling [citebot-evals](https://github.com/jakob-alexander2000/citebot-evals) fixture scorecard.
 
 ## Layout
 
 ```
-app/                 # home, /ask, /handbook, /harness, /onboard, /growth, /api/chat, /api/events
+app/                 # home, /ask, /handbook, /harness, /evals, /onboard, /growth, /api/chat, /api/events
 components/          # chat, language switch, evidence, handbook
 lib/                 # locale, agent loop, tools, rag, verify
 corpus/de corpus/en  # QM handbook
 docs/demo-questions.md
+evals/golden.json
 tests/
 WHITE_LABEL.md
 ```

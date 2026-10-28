@@ -49,7 +49,18 @@ Each question is plan → at most three corpus tools → draft → the verify ha
 
 1. `npm test` — fixture model, no `GEMINI_API_KEY`. Includes the 3-round cap, a repeated-call stop, and the DE/EN corpus split.
 2. With a key: ask a demo question and confirm **Steps** lists `search_handbook` (or a sibling tool) and the Evidence panel shows pass / fail in the active language.
-3. CI: `.github/workflows/ci.yml`. A separate citebot-evals job still runs; it is not part of this product.
+3. CI: `.github/workflows/ci.yml` runs `npm test`, `npm run eval`, and `npm run build`. A sibling citebot-evals job still replays saved replies.
+
+## CiteBot eval harness
+
+**What it does**  
+`npm run eval` runs the agent loop on eight English handbook questions (`evals/golden.json`) and scores each draft with verify. Grounded cases must come back `grounded` with no `fail` or `unsupported` claim. The gap case must refuse, and that refusal must be `pass`. The wrong-count case is a fixed “25 days” draft; it passes the suite only when verify returns `fail`. No API key. The public write-up is `/evals`, linked from the CiteBot header beside Harness. Grounded Docs does not show that link.
+
+**How to verify**
+
+1. `npm run eval` prints `Score: 8/8 (100%)`.
+2. `NEXT_PUBLIC_BRAND_NAME=CiteBot npm run dev` — the header has Evals next to Harness, and `/evals` lists the questions and the failure modes.
+3. Without that name, the header has no Evals link. `/evals` is a one-line boundary, not the scorecard.
 
 ## CiteBot onboard path
 

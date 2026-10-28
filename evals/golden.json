@@ -1,0 +1,114 @@
+{
+  "suite": "citebot-handbook-golden",
+  "corpus": "examples/nordlicht-corpus",
+  "description": "English employee-handbook questions. Each case runs the CiteBot agent loop, then scores the draft with verify's pass / fail / unsupported tokens.",
+  "cases": [
+    {
+      "id": "pto-days",
+      "kind": "grounded",
+      "question": "How many paid vacation days do full-time employees get?",
+      "note": "States 30 days, cites pto-and-leave.md, and every claim is pass (summary grounded).",
+      "expect": {
+        "answerIncludesAll": ["30"],
+        "answerMustNotInclude": ["unlimited", "25 days"],
+        "citationSourcesAny": ["pto-and-leave.md"],
+        "minCitations": 1,
+        "verificationSummariesAny": ["grounded"],
+        "verdictNone": ["fail", "unsupported"]
+      }
+    },
+    {
+      "id": "pto-carryover",
+      "kind": "grounded",
+      "question": "Until when can unused PTO carry over?",
+      "note": "States March 31, cites pto-and-leave.md, and every claim is pass.",
+      "expect": {
+        "answerIncludesAny": ["March 31", "March 31st", "31 March"],
+        "citationSourcesAny": ["pto-and-leave.md"],
+        "minCitations": 1,
+        "verificationSummariesAny": ["grounded"],
+        "verdictNone": ["fail", "unsupported"]
+      }
+    },
+    {
+      "id": "client-meal",
+      "kind": "grounded",
+      "question": "What is the client meal reimbursement limit per person?",
+      "note": "States 45 euros per person, cites expense-policy.md, and every claim is pass.",
+      "expect": {
+        "answerIncludesAny": ["45", "€45"],
+        "citationSourcesAny": ["expense-policy.md"],
+        "minCitations": 1,
+        "verificationSummariesAny": ["grounded"],
+        "verdictNone": ["fail", "unsupported"]
+      }
+    },
+    {
+      "id": "receipt-window",
+      "kind": "grounded",
+      "question": "Within how many days must expense receipts be uploaded?",
+      "note": "States 14 days, cites expense-policy.md, and every claim is pass.",
+      "expect": {
+        "answerIncludesAll": ["14"],
+        "citationSourcesAny": ["expense-policy.md"],
+        "minCitations": 1,
+        "verificationSummariesAny": ["grounded"],
+        "verdictNone": ["fail", "unsupported"]
+      }
+    },
+    {
+      "id": "demo-slot",
+      "kind": "grounded",
+      "question": "How many minutes is each demo slot before the hard stop?",
+      "note": "States five minutes, cites demo-day.md, and every claim is pass.",
+      "expect": {
+        "answerIncludesAny": ["five", "5 minutes"],
+        "answerIncludesAll": ["minutes"],
+        "citationSourcesAny": ["demo-day.md"],
+        "minCitations": 1,
+        "verificationSummariesAny": ["grounded"],
+        "verdictNone": ["fail", "unsupported"]
+      }
+    },
+    {
+      "id": "desk-days",
+      "kind": "grounded",
+      "question": "Which weekdays are desk days?",
+      "note": "States Tuesday and Thursday, cites welcome.md, and every claim is pass.",
+      "expect": {
+        "answerIncludesAll": ["Tuesday", "Thursday"],
+        "citationSourcesAny": ["welcome.md"],
+        "minCitations": 1,
+        "verificationSummariesAny": ["grounded"],
+        "verdictNone": ["fail", "unsupported"]
+      }
+    },
+    {
+      "id": "gap-office-dog",
+      "kind": "gap",
+      "question": "What is the office dog's name?",
+      "note": "Refuses. Verify marks that gap pass. An invented name fails the case.",
+      "expect": {
+        "mustRefuse": true,
+        "answerMustNotInclude": ["Barkley", "Buddy", "Rex", "Bella"],
+        "verificationSummariesAny": ["grounded"],
+        "verdictNone": ["fail", "unsupported"]
+      }
+    },
+    {
+      "id": "pto-wrong-count",
+      "kind": "contradiction",
+      "question": "How many paid vacation days do full-time employees get?",
+      "fixedAnswer": "Full-time employees receive 25 days of paid vacation per calendar year.",
+      "note": "A fixed draft says 25 days. The case passes only when verify marks that figure fail.",
+      "expect": {
+        "answerIncludesAll": ["25"],
+        "answerMustNotInclude": ["30 days"],
+        "citationSourcesAny": ["pto-and-leave.md"],
+        "minCitations": 1,
+        "verificationSummariesAny": ["ungrounded", "mixed"],
+        "verdictAny": ["fail"]
+      }
+    }
+  ]
+}

@@ -25,6 +25,9 @@ jobs:
       - name: Fixture tests
         run: npm run test:ci
 
+      - name: CiteBot eval harness
+        run: npm run eval
+
       - name: Build
         run: npm run build
 

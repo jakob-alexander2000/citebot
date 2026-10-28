@@ -1,11 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { getBrand } from "@/lib/brand";
+import { showCitebotEvals } from "@/lib/eval-public";
 import type { Locale } from "@/lib/locale";
 import { ui } from "@/lib/messages";
 import { LocaleSwitch } from "./LocaleSwitch";
 
-type NavId = "home" | "chat" | "handbook" | "harness" | "onboard";
+type NavId = "home" | "chat" | "handbook" | "harness" | "evals" | "onboard";
 
 type Props = {
   active?: NavId;
@@ -19,6 +20,7 @@ export function SiteHeader({ active, locale, source }: Props) {
 
   const product = brand.skin === "product";
   const craft = brand.skin === "craft";
+  const evals = showCitebotEvals(brand.skin);
 
   return (
     <header
@@ -78,6 +80,11 @@ export function SiteHeader({ active, locale, source }: Props) {
             <NavLink href="/harness" active={active === "harness"}>
               {copy.navHarness}
             </NavLink>
+            {evals ? (
+              <NavLink href="/evals" active={active === "evals"}>
+                Evals
+              </NavLink>
+            ) : null}
             {craft ? (
               <NavLink href="/onboard" active={active === "onboard"}>
                 Onboard
@@ -108,6 +115,19 @@ export function SiteHeader({ active, locale, source }: Props) {
               }
             >
               Onboard
+            </Link>
+          ) : null}
+          {evals ? (
+            <Link
+              href="/evals"
+              aria-current={active === "evals" ? "page" : undefined}
+              className={
+                active === "evals"
+                  ? "text-xs font-medium text-zinc-900 sm:hidden dark:text-zinc-100"
+                  : "text-xs text-zinc-500 transition hover:text-zinc-900 sm:hidden dark:hover:text-zinc-100"
+              }
+            >
+              Evals
             </Link>
           ) : null}
           <Link
