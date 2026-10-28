@@ -11,11 +11,12 @@ export async function generateMetadata() {
   const { locale } = await getLocaleState();
   const brand = getBrand(locale);
   const scorecard = showCitebotEvals(brand.skin);
+  const boundary = locale === "de" ? EVAL_BOUNDARY.de : EVAL_BOUNDARY.en;
   return {
-    title: `Evals · ${brand.name}`,
+    title: scorecard ? `Evals · ${brand.name}` : `${boundary.kicker} · ${brand.name}`,
     description: scorecard
       ? "Golden handbook questions, what a pass means, and how a failed check looks."
-      : EVAL_BOUNDARY.en.body,
+      : boundary.body,
   };
 }
 
