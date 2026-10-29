@@ -15,15 +15,8 @@ export type HandbookDoc = {
   lang?: Locale;
 };
 
-/** Topic order for the QM handbook, then the older English sample. */
+/** Topic order for the sample employee handbook. */
 const ORDER = [
-  "qualitaetspolitik",
-  "quality-policy",
-  "dokumentenlenkung",
-  "document-control",
-  "capa",
-  "lieferanten",
-  "suppliers",
   "welcome",
   "pto-and-leave",
   "expense-policy",

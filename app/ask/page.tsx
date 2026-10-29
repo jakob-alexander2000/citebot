@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { Suspense } from "react";
 import { Chat } from "@/components/Chat";
 import { SiteHeader } from "@/components/SiteHeader";
-import { brandSkin, getBrand } from "@/lib/brand";
+import { getBrand } from "@/lib/brand";
 import { listHandbookDocs } from "@/lib/docs";
 import { assignChipOrder, CHIP_ORDER_COOKIE, type ChipOrderVariant } from "@/lib/experiment";
 import type { Locale } from "@/lib/locale";
@@ -45,8 +45,7 @@ async function ChatWithTopics({
   );
 }
 
-async function chipExperiment(): Promise<{ variant: ChipOrderVariant | null; fresh: boolean }> {
-  if (brandSkin() !== "craft") return { variant: null, fresh: false };
+async function chipExperiment(): Promise<{ variant: ChipOrderVariant; fresh: boolean }> {
   const jar = await cookies();
   return assignChipOrder(jar.get(CHIP_ORDER_COOKIE)?.value, Math.random());
 }

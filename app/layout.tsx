@@ -23,7 +23,7 @@ const instrumentSerif = Instrument_Serif({
   weight: "400",
 });
 
-/** Locale comes from the request cookie and Accept-Language. */
+/** English UI. Corpus language folders are not a visitor switch. */
 export const instant = false;
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -46,7 +46,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       style={{ ["--brand-accent" as string]: brand.accent }}
     >
       <body className="flex min-h-full flex-col font-sans">
-        <Analytics locale={locale} skin={brand.skin} />
+        <Analytics />
         {children}
       </body>
     </html>

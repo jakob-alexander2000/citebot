@@ -74,19 +74,7 @@ export function parseVerifierClaims(
  * handbook chunks that grounded generation. Returns per-claim pass / fail /
  * unsupported — not a cosmetic confidence score.
  */
-function verifyFallback(locale: Locale) {
-  if (locale === "de") {
-    return {
-      emptyClaim: "(leere Antwort)",
-      emptyEvidence: "Kein Antworttext zum Prüfen.",
-      parseClaim: "Der Nachweis konnte die Aussagenliste nicht lesen.",
-      parseEvidence: "Der Prüfschritt lieferte leeres oder ungültiges JSON.",
-      downClaim: "Der Nachweis konnte nicht laufen.",
-      downEvidence:
-        "Der KI-Anbieter ist vorübergehend nicht erreichbar. Bitte versuchen Sie es gleich noch einmal.",
-      failed: "Nachweis fehlgeschlagen",
-    };
-  }
+function verifyFallback() {
   return {
     emptyClaim: "(empty answer)",
     emptyEvidence: "No answer text to verify.",
@@ -105,7 +93,7 @@ export async function verifyAnswer(
   citations: Citation[],
   locale: Locale = "en",
 ): Promise<Verification> {
-  const copy = verifyFallback(locale);
+  const copy = verifyFallback();
   if (!answer.trim()) {
     return {
       summary: "ungrounded",
@@ -128,9 +116,7 @@ export async function verifyAnswer(
 
   const brand = getBrand(locale);
   const languageLine =
-    locale === "de"
-      ? "Schreibe claim und evidence auf Deutsch. Die Werte für verdict bleiben pass, fail oder unsupported."
-      : "Write claim and evidence in English. Verdict values stay pass, fail, or unsupported.";
+    "Write claim and evidence in English. Verdict values stay pass, fail, or unsupported.";
   const prompt = `You are the verify step for ${brand.name} (handbook RAG).
 Split the ASSISTANT ANSWER into atomic factual claims (1–6). For each claim, check ONLY the RETRIEVED CONTEXT below.
 ${languageLine}

@@ -2,8 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { runAgentLoop, type GenerateFn } from "./agent";
 import { loadCorpusChunks } from "./corpus";
-import { answerLooksLikeRefusal } from "./onboard";
-import { localOnboardGenerate, localPassageVerify } from "./onboard-local";
+import { answerLooksLikeRefusal, localHandbookGenerate, localPassageVerify } from "./eval-local";
 import { TOOL_NAMES, lexicalSearch } from "./tools";
 import type { Citation, ClaimVerdict, Verification, VerificationSummary } from "./types";
 import { summarizeClaims } from "./verify";
@@ -433,7 +432,7 @@ export async function runGoldenSuite(filePath = GOLDEN_PATH): Promise<EvalReport
   for (const row of golden.cases) {
     const generate = row.fixedAnswer
       ? fixedDraft(row.question, row.fixedAnswer)
-      : localOnboardGenerate(row.question, TOOL_NAMES);
+      : localHandbookGenerate(row.question, TOOL_NAMES);
     const response = await runAgentLoop({
       question: row.question,
       chunks,

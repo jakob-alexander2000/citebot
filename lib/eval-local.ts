@@ -1,5 +1,4 @@
 import type { GenerateFn } from "./agent";
-import { answerLooksLikeRefusal } from "./onboard";
 import type { ToolName } from "./tools";
 import type { Citation, EvidenceClaim, Verification } from "./types";
 import { summarizeClaims } from "./verify";
@@ -22,14 +21,18 @@ const STOP = new Set([
   "full",
   "time",
   "per",
-  "und",
-  "die",
-  "der",
-  "das",
-  "wie",
-  "wird",
-  "werden",
 ]);
+
+const REFUSAL_PATTERNS: readonly RegExp[] = [
+  /do not cover/i,
+  /does not cover/i,
+  /not covered/i,
+  /not in the (handbook|documents|pages)/i,
+];
+
+export function answerLooksLikeRefusal(answer: string): boolean {
+  return REFUSAL_PATTERNS.some((pattern) => pattern.test(answer));
+}
 
 function plain(text: string): string {
   return text.replace(/[*_`#]/g, " ").replace(/\s+/g, " ").trim();
@@ -38,7 +41,7 @@ function plain(text: string): string {
 function tokens(text: string): string[] {
   return plain(text)
     .toLowerCase()
-    .split(/[^a-z0-9äöüß]+/i)
+    .split(/[^a-z0-9]+/i)
     .filter((token) => token.length > 2 && !STOP.has(token));
 }
 
@@ -58,12 +61,11 @@ function sentencesOf(text: string): string[] {
 }
 
 /**
- * Extractive draft used only when the onboard path has no model key.
+ * Extractive draft for the offline eval loop.
  * It copies overlapping sentences from the tool prompt, or refuses.
  */
 export function draftFromPrompt(prompt: string, question: string): string {
-  const marker = prompt.includes("Passages:") ? "Passages:" : "Textstellen:";
-  const passages = prompt.split(marker)[1] ?? "";
+  const passages = prompt.split("Passages:")[1] ?? "";
   if (!/\[\d+\]/.test(passages)) return "The documents do not cover this.";
 
   const blocks = passages
@@ -164,8 +166,8 @@ export function localPassageVerify(answer: string, citations: Citation[]): Verif
   return { summary: summarizeClaims(claims), claims };
 }
 
-/** One search, then an answer from those passages. Tools that are off stay off. */
-export function localOnboardGenerate(
+/** One search, then an answer from those passages. */
+export function localHandbookGenerate(
   question: string,
   enabled: readonly ToolName[],
 ): GenerateFn {
@@ -173,10 +175,10 @@ export function localOnboardGenerate(
   return async (prompt: string) => {
     turns += 1;
     const canSearch = enabled.includes("search_handbook");
-    if (turns === 1 && canSearch && !/Passages:\s*\[1\]|Textstellen:\s*\[1\]/.test(prompt)) {
+    if (turns === 1 && canSearch && !/Passages:\s*\[1\]/.test(prompt)) {
       return JSON.stringify({
         action: "tool",
-        plan: "Search the enabled pages.",
+        plan: "Search the handbook.",
         tool: "search_handbook",
         input: { query: question },
       });

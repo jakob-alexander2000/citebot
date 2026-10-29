@@ -99,52 +99,33 @@ function headings(text: string): string[] {
     .filter(Boolean);
 }
 
-function copy(locale?: Locale) {
-  const de = locale === "de";
+function copy() {
   return {
-    missingQuery: de ? "Suchanfrage fehlt." : "Missing query.",
-    missingQueryBody: de
-      ? "search_handbook braucht eine Suchanfrage."
-      : "search_handbook needs a query.",
-    noPassages: de ? "Keine passenden Textstellen." : "No matching passages.",
-    noneFor: (query: string) =>
-      de ? `Keine Textstellen für „${query}“.` : `No passages for "${query}".`,
+    missingQuery: "Missing query.",
+    missingQueryBody: "search_handbook needs a query.",
+    noPassages: "No matching passages.",
+    noneFor: (query: string) => `No passages for "${query}".`,
     passages: (n: number, titles: string) =>
-      de
-        ? `${n} Textstelle${n === 1 ? "" : "n"} · ${titles}`
-        : `${n} passage${n === 1 ? "" : "s"} · ${titles}`,
-    noDocs: de ? "Das Handbuch enthält keine Dokumente." : "Handbook has no documents.",
-    docs: (n: number) =>
-      de ? `${n} Dokument${n === 1 ? "" : "e"}` : `${n} document${n === 1 ? "" : "s"}`,
-    needId: de ? "id, Quelle oder Titel nötig." : "Need an id, source, or title.",
-    needIdBody: de
-      ? "get_section braucht id, source oder title."
-      : "get_section needs id, source, or title.",
-    noSection: de ? "Kein Abschnitt gefunden." : "No section matched.",
-    noSectionBody: de
-      ? "Kein Handbuchabschnitt passt zu dieser id, Quelle oder diesem Titel."
-      : "No handbook section matched that id, source, or title.",
+      `${n} passage${n === 1 ? "" : "s"} · ${titles}`,
+    noDocs: "Handbook has no documents.",
+    docs: (n: number) => `${n} document${n === 1 ? "" : "s"}`,
+    needId: "Need an id, source, or title.",
+    needIdBody: "get_section needs id, source, or title.",
+    noSection: "No section matched.",
+    noSectionBody: "No handbook section matched that id, source, or title.",
     sections: (n: number, titles: string) =>
-      de
-        ? `${n} Abschnitt${n === 1 ? "" : "e"} · ${titles}`
-        : `${n} section${n === 1 ? "" : "s"} · ${titles}`,
-    missingQuote: de ? "Zitat fehlt." : "Missing quote.",
-    missingQuoteBody: de
-      ? "quote_check braucht ein Zitat mit mindestens 4 Zeichen."
-      : "quote_check needs a quote of at least 4 characters.",
-    matched: (source: string) =>
-      de ? `Gefunden in ${source}` : `Matched in ${source}`,
-    foundIn: (title: string, id: string) =>
-      de ? `Zitat gefunden in ${title} (${id}).` : `Quote found in ${title} (${id}).`,
-    noMatch: (where: string) => (de ? `Kein Treffer${where}.` : `No match${where}.`),
+      `${n} section${n === 1 ? "" : "s"} · ${titles}`,
+    missingQuote: "Missing quote.",
+    missingQuoteBody: "quote_check needs a quote of at least 4 characters.",
+    matched: (source: string) => `Matched in ${source}`,
+    foundIn: (title: string, id: string) => `Quote found in ${title} (${id}).`,
+    noMatch: (where: string) => `No match${where}.`,
     noMatchBody: (where: string, quote: string) =>
-      de
-        ? `Das Zitat steht nicht im Handbuch${where}: „${quote}“`
-        : `The quote does not appear in the handbook${where}: "${quote}"`,
+      `The quote does not appear in the handbook${where}: "${quote}"`,
   };
 }
 
-function listTopics(chunks: Chunk[], locale?: Locale): ToolExecution {
+function listTopics(chunks: Chunk[]): ToolExecution {
   const bySource = new Map<string, { title: string; sections: string[] }>();
   for (const chunk of chunks) {
     const current = bySource.get(chunk.source) ?? {
@@ -170,7 +151,7 @@ function listTopics(chunks: Chunk[], locale?: Locale): ToolExecution {
     return `- ${topic.title} (${topic.source})${sections}`;
   });
 
-  const text = copy(locale);
+  const text = copy();
   const summary = topics.length === 0 ? text.noDocs : text.docs(topics.length);
 
   return {
@@ -216,9 +197,8 @@ function findSection(chunks: Chunk[], input: Record<string, unknown>): Chunk[] {
 function getSection(
   chunks: Chunk[],
   input: Record<string, unknown>,
-  locale?: Locale,
 ): ToolExecution {
-  const text = copy(locale);
+  const text = copy();
   const id = asString(input.id, 120);
   const source = asString(input.source, 160);
   const title = asString(input.title, 160);
@@ -260,9 +240,8 @@ function getSection(
 function quoteCheck(
   chunks: Chunk[],
   input: Record<string, unknown>,
-  locale?: Locale,
 ): ToolExecution {
-  const text = copy(locale);
+  const text = copy();
   const quote = asString(input.quote, 400);
   if (quote.length < 4) {
     return {
@@ -303,10 +282,10 @@ export async function executeTool(
   input: Record<string, unknown>,
   runtime: ToolRuntime,
 ): Promise<ToolExecution> {
-  const text = copy(runtime.locale);
-  if (name === "list_topics") return listTopics(runtime.chunks, runtime.locale);
-  if (name === "get_section") return getSection(runtime.chunks, input, runtime.locale);
-  if (name === "quote_check") return quoteCheck(runtime.chunks, input, runtime.locale);
+  const text = copy();
+  if (name === "list_topics") return listTopics(runtime.chunks);
+  if (name === "get_section") return getSection(runtime.chunks, input);
+  if (name === "quote_check") return quoteCheck(runtime.chunks, input);
 
   const query = asString(input.query, 300);
   if (!query) {

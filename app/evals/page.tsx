@@ -2,7 +2,7 @@ import Link from "next/link";
 import golden from "@/evals/golden.json";
 import { SiteHeader } from "@/components/SiteHeader";
 import { getBrand } from "@/lib/brand";
-import { EVAL_BOUNDARY, EVAL_FAIL_MODES, EVAL_SCORECARD, showCitebotEvals } from "@/lib/eval-public";
+import { EVAL_FAIL_MODES, EVAL_SCORECARD } from "@/lib/eval-public";
 import { getLocaleState } from "@/lib/request-locale";
 
 export const instant = false;
@@ -10,53 +10,20 @@ export const instant = false;
 export async function generateMetadata() {
   const { locale } = await getLocaleState();
   const brand = getBrand(locale);
-  const scorecard = showCitebotEvals(brand.skin);
-  const boundary = locale === "de" ? EVAL_BOUNDARY.de : EVAL_BOUNDARY.en;
   return {
-    title: scorecard ? `Evals · ${brand.name}` : `${boundary.kicker} · ${brand.name}`,
-    description: scorecard
-      ? "Golden handbook questions, what a pass means, and how a failed check looks."
-      : boundary.body,
+    title: `Evals · ${brand.name}`,
+    description: "Golden handbook questions, what a pass means, and how a failed check looks.",
   };
 }
 
 function kindLabel(kind: string): string {
   if (kind === "gap") return "Gap";
   if (kind === "contradiction") return "Caught fail";
-  return "Grounded";
+  return "Supported";
 }
 
 export default async function EvalsPage() {
   const { locale, source } = await getLocaleState();
-  const brand = getBrand(locale);
-  if (!showCitebotEvals(brand.skin)) {
-    const copy = locale === "de" ? EVAL_BOUNDARY.de : EVAL_BOUNDARY.en;
-    return (
-      <main className="flex min-h-full flex-1 flex-col">
-        <SiteHeader locale={locale} source={source} />
-        <article className="mx-auto w-full max-w-2xl px-4 pb-16 pt-12 sm:px-6">
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
-            {copy.kicker}
-          </p>
-          <h1 className="mt-3 font-serif text-[2.35rem] leading-[1.15] tracking-tight text-zinc-900 dark:text-zinc-50">
-            {copy.title}
-          </h1>
-          <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-zinc-600 dark:text-zinc-400">
-            {copy.body}
-          </p>
-          <p className="mt-6 text-sm">
-            <Link
-              href="/harness"
-              className="text-zinc-800 underline decoration-zinc-300 underline-offset-4 dark:text-zinc-200"
-            >
-              {copy.back}
-            </Link>
-          </p>
-        </article>
-      </main>
-    );
-  }
-
   const copy = EVAL_SCORECARD;
 
   return (

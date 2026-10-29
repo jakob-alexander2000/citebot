@@ -1,8 +1,7 @@
 /**
- * Event schema for the demo log.
+ * Event schema for the ask log.
  * Question text, answers, and secrets are rejected. A chip is a filename, not a sentence.
  */
-import type { BrandSkin } from "./brand";
 import { CHIP_ORDER_EXPERIMENT, CHIP_ORDER_VARIANTS, type ChipOrderVariant } from "./experiment";
 
 export const EVENT_NAMES = [
@@ -12,16 +11,15 @@ export const EVENT_NAMES = [
   "verify_result",
   "experiment_assignment",
   "experiment_conversion",
-  "locale_ignored",
 ] as const;
 
 export type EventName = (typeof EVENT_NAMES)[number];
 
-export const ANALYTICS_PAGES = ["home", "ask", "harness", "handbook", "growth"] as const;
+export const ANALYTICS_PAGES = ["home", "ask", "harness", "handbook", "evals"] as const;
 export type AnalyticsPage = (typeof ANALYTICS_PAGES)[number];
 
-const SKINS = ["product", "craft", "client"] as const;
-const LOCALES = ["de", "en"] as const;
+const SKINS = ["citebot"] as const;
+const LOCALES = ["en"] as const;
 const SUMMARIES = ["grounded", "mixed", "ungrounded", "unavailable"] as const;
 const GOALS = ["ask_submit", "verify"] as const;
 
@@ -93,9 +91,6 @@ export function parseEvent(body: unknown, now = new Date()): ParseResult {
 
   const props = readProps(name, body.props);
   if (!props) return fail("Props do not match this event.");
-  if (props.skin === "craft" && props.locale === "de") {
-    return fail("Craft skin does not record de events.");
-  }
   return { ok: true, event: { name, ts: now.toISOString(), props } };
 }
 
@@ -146,8 +141,6 @@ function readProps(name: EventName, props: Dict): PropMap | null {
       return readAssignment(props);
     case "experiment_conversion":
       return readConversion(props);
-    case "locale_ignored":
-      return readLocaleIgnored(props);
     default:
       return null;
   }
@@ -237,12 +230,6 @@ function readConversion(props: Dict): PropMap | null {
   const goal = oneOf(props.goal, GOALS);
   if (!variant || !goal) return null;
   return { experiment: CHIP_ORDER_EXPERIMENT, variant, goal };
-}
-
-function readLocaleIgnored(props: Dict): PropMap | null {
-  if (!only(props, ["requested", "skin"])) return null;
-  if (props.requested !== "de" || props.skin !== "craft") return null;
-  return { requested: "de", skin: "craft" satisfies BrandSkin };
 }
 
 function withExperiment(props: Dict, out: PropMap): PropMap | null {

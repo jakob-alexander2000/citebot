@@ -4,18 +4,12 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   serverExternalPackages: ["unpdf"],
-  // Ensure handbook .md/.pdf ship with the ask, handbook, and chat routes.
+  // Handbook markdown and PDF ship with the ask, handbook, and chat routes.
   outputFileTracingIncludes: {
-    "/": ["./corpus/**/*", "./examples/de-qm-corpus/**/*", "./examples/nordlicht-corpus/**/*"],
-    "/ask": ["./corpus/**/*", "./examples/de-qm-corpus/**/*", "./examples/nordlicht-corpus/**/*"],
-    "/handbook": ["./corpus/**/*", "./examples/de-qm-corpus/**/*", "./examples/nordlicht-corpus/**/*"],
-    "/api/chat": ["./corpus/**/*", "./examples/de-qm-corpus/**/*", "./examples/nordlicht-corpus/**/*"],
-    "/onboard": [
-      "./examples/nordlicht-corpus/**/*",
-      "./examples/de-qm-corpus/**/*",
-      "./docs/onboard.md",
-    ],
-    "/onboard/run": ["./docs/onboard.md"],
+    "/": ["./examples/nordlicht-corpus/**/*"],
+    "/ask": ["./examples/nordlicht-corpus/**/*"],
+    "/handbook": ["./examples/nordlicht-corpus/**/*"],
+    "/api/chat": ["./examples/nordlicht-corpus/**/*"],
   },
   turbopack: {
     rules: {
