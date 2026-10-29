@@ -1,24 +1,12 @@
 # CiteBot
 
-Selected work. English only.
-
 CiteBot answers a question from one sample employee handbook and shows the passage that answer came from.
 
 [Try it](https://citebot-chi.vercel.app)
 
 Each claim is checked against those passages and marked pass, fail, or unsupported. When the pages do not cover the question, a straight refusal counts as pass.
 
-The latest recorded run passed 8 of 8 questions. `npm run eval` rewrites [evals/last-run.json](evals/last-run.json), and the evals page reads that file: what was measured, how many questions, who added the cases, the date, the pass count, and the commit.
-
-## What was built, and what Jakob decided
-
-From the git history, without guessing at motives:
-
-- Jakob Alexander authored the first CiteBot app (`57b3d37`). TODO(Jakob): why this was the right first version.
-- Jakob Alexander added the verify step that checks each claim against the retrieved passages (`73f59b8`). TODO(Jakob): why that check runs on every answer.
-- Jakob Alexander added the tool-using agent loop and wired the question scorecard into continuous integration (`d832f42`). TODO(Jakob): why the loop is capped, and why the scorecard runs on every pull request.
-- Jakob Alexander added the eight handbook questions (`3a7539d`). The message names the harness. TODO(Jakob): why these questions were the set.
-- An automated edit removed the earlier bilingual handbook product from this public repository (`6bfa598`). TODO(Jakob): why that product should not stay here.
+The recorded run on 29 October 2026 passed 8 of 8 questions. The questions run through the real agent loop with a stand-in model and an offline check, so they catch code changes, not live-model mistakes. `npm run eval` rewrites [evals/last-run.json](evals/last-run.json); the [evals page](https://citebot-chi.vercel.app/evals) shows what was measured, who wrote the cases, the date and the commit.
 
 ## Run the evaluation and the tests
 

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { listHandbookDocs } from "../lib/docs";
 import { InlineMarkdown, Markdown } from "../components/Markdown";
 
 describe("answer markdown", () => {
@@ -35,5 +36,12 @@ describe("answer markdown", () => {
     assert.equal(html.includes("<script>"), false);
     assert.match(html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
     assert.match(html, /<strong[^>]*>30 days<\/strong>/);
+  });
+
+  it("strips bold markers from the time-off summary", async () => {
+    const docs = await listHandbookDocs();
+    const timeOff = docs.find((doc) => doc.filename.endsWith("pto-and-leave.md"));
+    assert.ok(timeOff);
+    assert.equal(timeOff.summary.includes("**"), false);
   });
 });

@@ -34,10 +34,9 @@ async function main() {
     score: report.score,
     ranAt: new Date().toISOString(),
     commit: git("git rev-parse HEAD"),
-    casesAuthor: casesAuthor || "TODO(Jakob)",
+    casesAuthor: casesAuthor || "",
     casesCommit: casesCommit || "",
-    casesReason:
-      "TODO(Jakob): the commit that added evals/golden.json names the harness and does not say why these questions were chosen.",
+    casesReason: "",
   };
   fs.writeFileSync(RESULT_PATH, `${JSON.stringify(record, null, 2)}\n`);
 

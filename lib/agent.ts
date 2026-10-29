@@ -512,7 +512,11 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<ChatResponse>
       detail: labels.limit,
     });
   } else {
-    steps.push({ kind: "draft", label: labels.draft, detail: clip(draft!, 180) });
+    steps.push({
+      kind: "draft",
+      label: labels.draft,
+      detail: clip(draft!.replaceAll("**", ""), 180),
+    });
   }
 
   const verification = await input.verify(

@@ -51,7 +51,17 @@ export default async function EvalsPage() {
           <dl className="mt-3 space-y-1 text-[13px] leading-relaxed text-zinc-700 dark:text-zinc-300">
             <div>
               <dt className="inline font-medium text-zinc-900 dark:text-zinc-100">When: </dt>
-              <dd className="inline">{lastRun.ranAt}</dd>
+              <dd className="inline">
+                {new Date(lastRun.ranAt).toLocaleString("en-GB", {
+                  timeZone: "Europe/Berlin",
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}{" "}
+                Berlin time
+              </dd>
             </div>
             <div>
               <dt className="inline font-medium text-zinc-900 dark:text-zinc-100">Commit: </dt>
@@ -64,10 +74,12 @@ export default async function EvalsPage() {
                 {lastRun.casesCommit ? ` (${lastRun.casesCommit})` : ""}
               </dd>
             </div>
-            <div>
-              <dt className="sr-only">Why these cases</dt>
-              <dd>{lastRun.casesReason}</dd>
-            </div>
+            {lastRun.casesReason ? (
+              <div>
+                <dt className="sr-only">Why these cases</dt>
+                <dd>{lastRun.casesReason}</dd>
+              </div>
+            ) : null}
           </dl>
         </section>
 

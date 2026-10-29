@@ -51,7 +51,7 @@ export default async function HarnessPage() {
           <p className="text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">
             {copy.architectureBefore}{" "}
             <span className="font-medium text-zinc-900 dark:text-zinc-100">
-              plan → tools → draft → verify
+              plan, tools, draft, verify
             </span>
             . {copy.architectureAfter}
           </p>
@@ -93,7 +93,7 @@ export default async function HarnessPage() {
             >
               Evals
             </Link>
-            . <code className="font-mono text-[12px]">npm run eval</code> scores them with no API key.
+            . <code className="font-mono text-[12px]">npm run eval</code> scores them with no model key.
           </p>
         </section>
 

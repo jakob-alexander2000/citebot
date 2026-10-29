@@ -28,7 +28,7 @@ describe("recorded eval run", () => {
     assert.match(parsed.commit, /^[0-9a-f]{7,40}$/);
     assert.ok(parsed.measured.length > 20);
     assert.ok(parsed.casesAuthor.length > 0);
-    assert.match(parsed.casesReason, /TODO\(Jakob\)/);
+    assert.equal(parsed.casesReason, "");
     const page = fs.readFileSync(path.join(process.cwd(), "app", "evals", "page.tsx"), "utf8");
     assert.match(page, /last-run\.json/);
     assert.doesNotMatch(page, /8 of 8/);

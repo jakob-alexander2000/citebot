@@ -68,7 +68,7 @@ export const HARNESS: HarnessCopy = {
     { name: "get_section", body: "One section by id, file, or title." },
     { name: "quote_check", body: "Whether a claimed quote appears in the text." },
   ],
-  testsNote: "Fixture tests for the loop and the verifier run without a live API key.",
+  testsNote: "Fixture tests for the loop and the verifier run with no model key.",
   examplesTitle: "Evidence examples",
   examplesLead: "Three panels from the sample employee handbook. Same chrome as the live Evidence panel.",
   examples: [

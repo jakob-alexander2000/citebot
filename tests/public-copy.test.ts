@@ -5,7 +5,8 @@ import { describe, it } from "node:test";
 
 const BANNED = ["Grounded Docs", "Mittelstand"];
 
-const ROOTS = ["app", "components", "lib", "examples", "docs"];
+const ROOTS = ["app", "components", "lib", "examples", "docs", "evals", "scripts", "tests"];
+const SKIP = new Set(["tests/public-copy.test.ts"]);
 const FILES = ["README.md", "FEATURE_MAP.md", "AGENTS.md", "package.json", ".env.example"];
 
 function walk(dir: string): string[] {
@@ -28,6 +29,8 @@ describe("public copy", () => {
     ];
     const hits: string[] = [];
     for (const file of files) {
+      const relative = path.relative(process.cwd(), file);
+      if (SKIP.has(relative)) continue;
       const text = fs.readFileSync(file, "utf8");
       for (const phrase of BANNED) {
         if (text.includes(phrase)) hits.push(`${path.relative(process.cwd(), file)}: ${phrase}`);

@@ -22,6 +22,12 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
       - name: Fixture tests
         run: npm run test:ci
 

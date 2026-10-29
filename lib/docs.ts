@@ -34,7 +34,14 @@ function summaryFromText(content: string): string {
   const withoutTitle = content.replace(/^#\s+.+$/m, "").trim();
   const firstPara = withoutTitle
     .split(/\n{2,}/)
-    .map((p) => p.replace(/^##\s+.+$/m, "").replace(/\n/g, " ").trim())
+    .map((p) =>
+      p
+        .replace(/^##\s+.+$/m, "")
+        .replace(/\*\*(.+?)\*\*/g, "$1")
+        .replace(/^\s*[-*]\s+/gm, "")
+        .replace(/\n/g, " ")
+        .trim(),
+    )
     .find((p) => p.length > 0);
   if (!firstPara) return "";
   return firstPara.length > 140 ? `${firstPara.slice(0, 137)}…` : firstPara;
