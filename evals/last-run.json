@@ -4,9 +4,9 @@
   "passed": 8,
   "failed": 0,
   "score": "8/8 (100%)",
-  "ranAt": "2026-10-29T20:09:05.724Z",
-  "commit": "f372d4ebd3bc59d7e1d3730a60ebd1d4d96aa21f",
-  "casesAuthor": "Cursor Agent",
-  "casesCommit": "f372d4e",
+  "ranAt": "2026-10-29T20:09:36.376Z",
+  "commit": "501e038714475ce4a2d62108eabe203fb0c68af2",
+  "casesAuthor": "Jakob Alexander",
+  "casesCommit": "3a7539d",
   "casesReason": "TODO(Jakob): the commit that added evals/golden.json names the harness and does not say why these questions were chosen."
 }
