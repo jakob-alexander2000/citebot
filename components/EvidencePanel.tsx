@@ -6,6 +6,7 @@ import {
   summaryLabel,
   verdictLabel,
 } from "@/lib/evidence-labels";
+import { InlineMarkdown } from "./Markdown";
 import type { Locale } from "@/lib/locale";
 import type {
   Citation,
@@ -68,14 +69,14 @@ export function EvidencePanel({
     <div className="mt-5 rounded-xl border border-zinc-200 bg-white/60 p-4 dark:border-zinc-800 dark:bg-zinc-950/40">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+          <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-700 dark:text-zinc-300">
             {evidenceKicker(locale)}
           </p>
           <p className="mt-1 text-sm font-medium text-zinc-900 dark:text-zinc-50">
             {summaryLabel(verification.summary, locale)}
           </p>
         </div>
-        <p className="font-mono text-[10px] tabular-nums text-zinc-400">
+        <p className="font-mono text-[10px] tabular-nums text-zinc-700 dark:text-zinc-300">
           {evidenceTally(passCount, failCount, unsupportedCount, locale)}
         </p>
       </div>
@@ -89,18 +90,18 @@ export function EvidencePanel({
               className={`rounded-lg border px-3 py-2.5 ${verdictClasses(claim.verdict)}`}
             >
               <div className="flex items-start justify-between gap-3">
-                <p className="text-[13px] leading-relaxed">{claim.claim}</p>
+                <p className="text-[13px] leading-relaxed">
+                  <InlineMarkdown content={claim.claim} />
+                </p>
                 <span
                   className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${pillClasses(claim.verdict)}`}
                 >
                   {verdictLabel(claim.verdict, locale)}
                 </span>
               </div>
-              <p className="mt-1.5 text-[12px] leading-relaxed opacity-80">
-                {claim.evidence}
-                {sourceTitle ? (
-                  <span className="opacity-70"> · {sourceTitle}</span>
-                ) : null}
+              <p className="mt-1.5 text-[12px] leading-relaxed">
+                <InlineMarkdown content={claim.evidence} />
+                {sourceTitle ? <span> · {sourceTitle}</span> : null}
               </p>
             </li>
           );

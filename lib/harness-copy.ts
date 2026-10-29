@@ -106,7 +106,7 @@ export const HARNESS: HarnessCopy = {
         {
           claim: "Unused days can carry past June.",
           verdict: "fail",
-          evidence: "The page says unused PTO does not carry over past March 31.",
+          evidence: "The page says unused paid time off does not carry over past March 31.",
           sourceTitle: "Time off and leave",
         },
       ],
@@ -131,7 +131,7 @@ export const HARNESS: HarnessCopy = {
   tryItems: [
     {
       label: "Time off",
-      body: "ask how many vacation days full-time employees get, and when unused PTO expires.",
+      body: "ask how many vacation days full-time employees get, and when unused paid time off expires.",
     },
     {
       label: "Expenses",

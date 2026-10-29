@@ -52,13 +52,13 @@ export const EVAL_SCORECARD = {
   pass: "Every check on every case held. A supported question stated the handbook fact, cited the page that contains it, and verify marked each claim pass. A gap question refused, and that refusal was pass because the passages do not answer it. The wrong-count case is a bad draft on purpose: it passes only when verify marks 25 days as fail against the page that says 30.",
   failTitle: "How a fail looks",
   failLead:
-    "A case fails when any one check misses. The command prints the case id and the check name. The suite exits with a failure, so CI goes red.",
+    "A case fails when any one check misses. The command prints the case id and the check name. The suite exits with a failure, so continuous integration goes red.",
   runTitle: "How to run",
   command: "npm run eval",
   offline:
     "No API key. The loop reads the committed handbook under examples/nordlicht-corpus. Claims use the same pass, fail, and unsupported tokens as the live verify step. A figure in a claim that is missing from the retrieved passage is fail. A correct “not in the handbook” refusal is pass.",
   sibling:
-    "CI also runs the sibling citebot-evals fixture scorecard. That job replays saved replies. This command runs the agent loop.",
+    "Continuous integration also runs the sibling citebot-evals fixture scorecard. That job replays saved replies. This command runs the agent loop.",
   ask: "Ask the handbook",
   harness: "How the check works",
 } as const;

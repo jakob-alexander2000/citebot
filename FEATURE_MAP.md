@@ -33,7 +33,7 @@ Each question is plan → at most three handbook tools → draft → verify. A f
 
 `npm run eval` runs the agent loop on eight English handbook questions (`evals/golden.json`) and scores each draft with verify. Supported cases must come back with summary `grounded` and no `fail` or `unsupported` claim. The gap case must refuse, and that refusal must be `pass`. The wrong-count case is a fixed “25 days” draft; it passes only when verify returns `fail`. No API key. The write-up is `/evals`.
 
-CI (`.github/workflows/ci.yml`) runs `npm test`, `npm run eval`, and `npm run build`, plus the sibling citebot-evals fixture scorecard.
+Continuous integration (`.github/workflows/ci.yml`) runs `npm test`, `npm run eval`, and `npm run build`, plus the sibling citebot-evals fixture scorecard.
 
 ## Not in this repo
 

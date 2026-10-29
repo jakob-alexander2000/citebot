@@ -65,6 +65,26 @@ function getOpenAiModel(): string {
   return process.env.OPENAI_MODEL?.trim() || "gpt-4o-mini";
 }
 
+function withDeadline<T>(work: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${Math.round(ms / 1000)} seconds.`));
+    }, ms);
+    work.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err: unknown) => {
+        clearTimeout(timer);
+        reject(err);
+      },
+    );
+  });
+}
+
+const MODEL_CALL_MS = 20_000;
+
 async function generateGemini(
   options: GenerateWithFallbackOptions,
 ): Promise<string> {
@@ -76,7 +96,11 @@ async function generateGemini(
       ...(options.json ? { responseMimeType: "application/json" } : {}),
     },
   });
-  const result = await model.generateContent(options.prompt);
+  const result = await withDeadline(
+    model.generateContent(options.prompt),
+    MODEL_CALL_MS,
+    "Gemini",
+  );
   return result.response.text()?.trim() ?? "";
 }
 
@@ -91,19 +115,24 @@ async function generateOpenAi(
     );
   }
 
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: getOpenAiModel(),
-      messages: [{ role: "user", content: options.prompt }],
-      temperature: options.temperature ?? 0.2,
-      ...(options.json ? { response_format: { type: "json_object" } } : {}),
+  const res = await withDeadline(
+    fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: getOpenAiModel(),
+        messages: [{ role: "user", content: options.prompt }],
+        temperature: options.temperature ?? 0.2,
+        ...(options.json ? { response_format: { type: "json_object" } } : {}),
+      }),
+      signal: AbortSignal.timeout(MODEL_CALL_MS),
     }),
-  });
+    MODEL_CALL_MS + 1000,
+    "OpenAI",
+  );
 
   const payload = (await res.json()) as {
     error?: { message?: string };

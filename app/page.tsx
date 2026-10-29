@@ -17,12 +17,12 @@ export default async function Home() {
     <main className="flex min-h-full flex-1 flex-col">
       <SiteHeader active="home" locale={locale} source={source} />
       <article className="mx-auto w-full max-w-xl px-4 pb-16 pt-14 sm:px-6">
-        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-zinc-500">
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-zinc-700 dark:text-zinc-300">
           {brand.org}
         </p>
         <h1 className="mt-4 font-serif text-[2.6rem] leading-[1.05] tracking-tight text-zinc-900 dark:text-zinc-50">
           {brand.tagline}
-          <span className="mt-1 block text-[1.35rem] font-normal text-zinc-500 dark:text-zinc-400">
+          <span className="mt-1 block text-[1.35rem] font-normal text-zinc-700 dark:text-zinc-300">
             {brand.taglineLine2}
           </span>
         </h1>
@@ -39,25 +39,25 @@ export default async function Home() {
           </Link>
           <Link
             href="/harness"
-            className="text-sm font-medium text-zinc-500 transition hover:text-zinc-900 dark:hover:text-zinc-100"
+            className="text-sm font-medium text-zinc-700 transition hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
           >
             {copy.homeHarness}
           </Link>
           <Link
             href="/handbook"
-            className="text-sm font-medium text-zinc-500 transition hover:text-zinc-900 dark:hover:text-zinc-100"
+            className="text-sm font-medium text-zinc-700 transition hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
           >
             {copy.homeHandbook}
           </Link>
           <Link
             href="/evals"
-            className="text-sm font-medium text-zinc-500 transition hover:text-zinc-900 dark:hover:text-zinc-100"
+            className="text-sm font-medium text-zinc-700 transition hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
           >
             Evals
           </Link>
         </div>
         <section className="mt-10 space-y-3">
-          <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+          <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-700 dark:text-zinc-300">
             {copy.homeTryTitle}
           </h2>
           <ul className="flex flex-col gap-2">
@@ -72,10 +72,10 @@ export default async function Home() {
           </ul>
         </section>
         <section className="mt-12 border-t border-zinc-200 pt-6 dark:border-zinc-800">
-          <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-400">
+          <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-700 dark:text-zinc-300">
             {copy.homeVerifyTitle}
           </h2>
-          <p className="mt-2 text-[13px] leading-relaxed text-zinc-500">{copy.homeVerifyBody}</p>
+          <p className="mt-2 text-[13px] leading-relaxed text-zinc-700 dark:text-zinc-300">{copy.homeVerifyBody}</p>
           <p className="mt-2 text-[13px]">
             <Link
               href="/harness"
@@ -83,7 +83,7 @@ export default async function Home() {
             >
               {copy.homeHarnessLink}
             </Link>
-            <span className="text-zinc-400"> · </span>
+            <span className="text-zinc-700 dark:text-zinc-300"> · </span>
             <Link
               href="/evals"
               className="text-zinc-600 underline decoration-zinc-300 underline-offset-4 dark:text-zinc-400 dark:decoration-zinc-600"

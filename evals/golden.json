@@ -20,7 +20,7 @@
     {
       "id": "pto-carryover",
       "kind": "grounded",
-      "question": "Until when can unused PTO carry over?",
+      "question": "Until when can unused paid time off carry over?",
       "note": "States March 31, cites pto-and-leave.md, and every claim is pass.",
       "expect": {
         "answerIncludesAny": ["March 31", "March 31st", "31 March"],

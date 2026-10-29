@@ -32,20 +32,20 @@ export function HandbookBrowser({
   );
 
   if (!docs.length) {
-    return <p className="text-sm text-zinc-500">{copy.noDocs}</p>;
+    return <p className="text-sm text-zinc-700 dark:text-zinc-300">{copy.noDocs}</p>;
   }
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 py-8 sm:px-6 lg:flex-row lg:gap-10 lg:py-12">
       <aside className="mb-8 w-full shrink-0 lg:mb-0 lg:w-56">
         <div className="mb-4">
-          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+          <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-700 dark:text-zinc-300">
             {copy.handbookKicker}
           </p>
           <h1 className="mt-1 font-serif text-2xl tracking-tight text-zinc-900 dark:text-zinc-50">
             {copy.handbookTitle}
           </h1>
-          <p className="mt-2 text-xs leading-relaxed text-zinc-500">
+          <p className="mt-2 text-xs leading-relaxed text-zinc-700 dark:text-zinc-300">
             {copy.handbookIntro(docs.length, brand.name)}{" "}
             <Link
               href="/ask"
@@ -73,8 +73,8 @@ export function HandbookBrowser({
                 <span
                   className={
                     selected
-                      ? "font-mono text-[10px] text-zinc-400 dark:text-zinc-500"
-                      : "font-mono text-[10px] text-zinc-400"
+                      ? "font-mono text-[10px] text-zinc-300 dark:text-zinc-700 contrast-inverse"
+                      : "font-mono text-[10px] text-zinc-700 dark:text-zinc-300"
                   }
                 >
                   {String(i + 1).padStart(2, "0")}
@@ -82,7 +82,7 @@ export function HandbookBrowser({
                 <p
                   className={
                     selected
-                      ? "mt-0.5 text-sm font-medium text-white dark:text-zinc-900"
+                      ? "contrast-inverse mt-0.5 text-sm font-medium text-white dark:text-zinc-900"
                       : "mt-0.5 text-sm font-medium text-zinc-800 dark:text-zinc-200"
                   }
                 >
@@ -91,8 +91,8 @@ export function HandbookBrowser({
                 <p
                   className={
                     selected
-                      ? "mt-0.5 line-clamp-2 text-[11px] leading-snug text-zinc-400 dark:text-zinc-500"
-                      : "mt-0.5 line-clamp-2 text-[11px] leading-snug text-zinc-500"
+                      ? "mt-0.5 line-clamp-2 text-[11px] leading-snug text-zinc-300 dark:text-zinc-700 contrast-inverse"
+                      : "mt-0.5 line-clamp-2 text-[11px] leading-snug text-zinc-700 dark:text-zinc-300"
                   }
                 >
                   {doc.summary}
@@ -106,10 +106,10 @@ export function HandbookBrowser({
       <section className="min-w-0 flex-1">
         {active ? (
           <article className="rounded-xl border border-zinc-200 bg-white px-5 py-6 sm:px-8 sm:py-8 dark:border-zinc-800 dark:bg-zinc-950">
-            <p className="mb-6 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-400">
+            <p className="mb-6 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-zinc-700 dark:text-zinc-300">
               <span>{active.filename}</span>
               {active.format === "pdf" ? (
-                <span className="rounded border border-zinc-200 px-1.5 py-0.5 text-[9px] font-medium normal-case tracking-normal text-zinc-500 dark:border-zinc-700">
+                <span className="rounded border border-zinc-200 px-1.5 py-0.5 text-[9px] font-medium normal-case tracking-normal text-zinc-700 dark:text-zinc-300 dark:border-zinc-700">
                   PDF
                 </span>
               ) : null}

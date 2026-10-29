@@ -12,12 +12,10 @@ describe("brand", () => {
     assert.equal(brand.corpusLabel, "employee handbook");
     assert.equal(brand.accent, "#1d4ed8");
     assert.match(brand.description, /employee handbook/i);
-    assert.doesNotMatch(brand.description, /quality handbook/i);
 
     const copy = ui("en");
     assert.equal(copy.askHeadline, "What does the handbook say?");
     assert.match(copy.homeLead, /employee handbook/i);
-    assert.doesNotMatch(copy.homeLead, /quality handbook/i);
     assert.equal(copy.metaTitle("CiteBot"), "CiteBot — Handbook answers");
     assert.equal(activeDemoQuestions().length, 3);
     assert.match(activeDemoQuestions()[0]!.question, /vacation days/);

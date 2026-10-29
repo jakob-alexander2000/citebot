@@ -25,7 +25,7 @@ export default async function HarnessPage() {
     <main className="flex min-h-full flex-1 flex-col">
       <SiteHeader active="harness" locale={locale} source={source} />
       <article className="mx-auto w-full max-w-2xl px-4 pb-16 pt-10 sm:px-6">
-        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-500">
+        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-700 dark:text-zinc-300">
           {copy.kicker}
         </p>
         <h1 className="mt-3 font-serif text-[2.35rem] leading-[1.15] tracking-tight text-zinc-900 dark:text-zinc-50">
@@ -36,7 +36,7 @@ export default async function HarnessPage() {
         </p>
 
         <section className="mt-10 space-y-3">
-          <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+          <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-700 dark:text-zinc-300">
             {copy.problemTitle}
           </h2>
           <p className="text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">
@@ -45,7 +45,7 @@ export default async function HarnessPage() {
         </section>
 
         <section className="mt-10 space-y-4">
-          <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+          <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-700 dark:text-zinc-300">
             {copy.architectureTitle}
           </h2>
           <p className="text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">
@@ -61,7 +61,7 @@ export default async function HarnessPage() {
                 key={step.step}
                 className="rounded-xl border border-zinc-200/90 bg-white/50 px-3.5 py-3 dark:border-zinc-800 dark:bg-zinc-950/30"
               >
-                <p className="font-mono text-[10px] tabular-nums text-zinc-400">{step.step}</p>
+                <p className="font-mono text-[10px] tabular-nums text-zinc-700 dark:text-zinc-300">{step.step}</p>
                 <p className="mt-1 text-sm font-medium text-zinc-900 dark:text-zinc-50">{step.title}</p>
                 <p className="mt-1 text-[13px] leading-relaxed text-zinc-600 dark:text-zinc-400">
                   {step.body}
@@ -72,7 +72,7 @@ export default async function HarnessPage() {
         </section>
 
         <section className="mt-10 space-y-3">
-          <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+          <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-700 dark:text-zinc-300">
             {copy.loopTitle}
           </h2>
           <p className="text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">{copy.loop}</p>
@@ -84,8 +84,8 @@ export default async function HarnessPage() {
               </li>
             ))}
           </ul>
-          <p className="text-[13px] leading-relaxed text-zinc-500">{copy.testsNote}</p>
-          <p className="text-[13px] leading-relaxed text-zinc-500">
+          <p className="text-[13px] leading-relaxed text-zinc-700 dark:text-zinc-300">{copy.testsNote}</p>
+          <p className="text-[13px] leading-relaxed text-zinc-700 dark:text-zinc-300">
             The golden questions, and how a failed check looks, are on{" "}
             <Link
               href="/evals"
@@ -99,7 +99,7 @@ export default async function HarnessPage() {
 
         <section className="mt-12 space-y-8">
           <div className="space-y-2">
-            <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+            <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-700 dark:text-zinc-300">
               {copy.examplesTitle}
             </h2>
             <p className="text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">
@@ -113,10 +113,10 @@ export default async function HarnessPage() {
               className="scroll-mt-8 space-y-3 border-t border-zinc-200/80 pt-8 dark:border-zinc-800/80"
             >
               <figcaption className="space-y-2">
-                <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+                <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-700 dark:text-zinc-300">
                   {example.label}
                 </p>
-                <p className="text-[13px] leading-relaxed text-zinc-500">
+                <p className="text-[13px] leading-relaxed text-zinc-700 dark:text-zinc-300">
                   <span className="font-medium text-zinc-800 dark:text-zinc-200">Q · </span>
                   {example.question}
                 </p>
@@ -126,13 +126,13 @@ export default async function HarnessPage() {
                 </p>
               </figcaption>
               <EvidenceSnapshot summary={example.summary} claims={example.claims} locale={locale} />
-              <p className="text-[13px] leading-relaxed text-zinc-500">{example.note}</p>
+              <p className="text-[13px] leading-relaxed text-zinc-700 dark:text-zinc-300">{example.note}</p>
             </figure>
           ))}
         </section>
 
         <section className="mt-12 space-y-3">
-          <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+          <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-700 dark:text-zinc-300">
             {copy.tryTitle}
           </h2>
           <ul className="space-y-2 text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">
@@ -154,7 +154,7 @@ export default async function HarnessPage() {
             {brand.githubUrl ? (
               <a
                 href={brand.githubUrl}
-                className="text-sm font-medium text-zinc-500 transition hover:text-zinc-900 dark:hover:text-zinc-100"
+                className="text-sm font-medium text-zinc-700 transition hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
                 target="_blank"
                 rel="noreferrer"
               >
@@ -164,7 +164,7 @@ export default async function HarnessPage() {
           </div>
         </section>
 
-        <p className="mt-12 border-t border-zinc-200 pt-6 text-[13px] leading-relaxed text-zinc-500 dark:border-zinc-800">
+        <p className="mt-12 border-t border-zinc-200 pt-6 text-[13px] leading-relaxed text-zinc-700 dark:text-zinc-300 dark:border-zinc-800">
           {copy.footer}
         </p>
       </article>

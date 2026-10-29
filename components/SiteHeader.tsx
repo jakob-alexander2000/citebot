@@ -57,7 +57,7 @@ export function SiteHeader({ active, locale }: Props) {
             className={
               active === "chat"
                 ? "text-xs font-medium text-zinc-900 sm:hidden dark:text-zinc-100"
-                : "text-xs text-zinc-500 transition hover:text-zinc-900 sm:hidden dark:hover:text-zinc-100"
+                : "text-xs text-zinc-700 transition hover:text-zinc-900 sm:hidden dark:text-zinc-300 dark:hover:text-zinc-100"
             }
           >
             {copy.navAsk}
@@ -68,7 +68,7 @@ export function SiteHeader({ active, locale }: Props) {
             className={
               active === "evals"
                 ? "text-xs font-medium text-zinc-900 sm:hidden dark:text-zinc-100"
-                : "text-xs text-zinc-500 transition hover:text-zinc-900 sm:hidden dark:hover:text-zinc-100"
+                : "text-xs text-zinc-700 transition hover:text-zinc-900 sm:hidden dark:text-zinc-300 dark:hover:text-zinc-100"
             }
           >
             Evals
@@ -79,7 +79,7 @@ export function SiteHeader({ active, locale }: Props) {
             className={
               active === "harness"
                 ? "text-xs font-medium text-zinc-900 sm:hidden dark:text-zinc-100"
-                : "text-xs text-zinc-500 transition hover:text-zinc-900 sm:hidden dark:hover:text-zinc-100"
+                : "text-xs text-zinc-700 transition hover:text-zinc-900 sm:hidden dark:text-zinc-300 dark:hover:text-zinc-100"
             }
           >
             {copy.navHarness}
@@ -87,7 +87,7 @@ export function SiteHeader({ active, locale }: Props) {
           {brand.githubUrl ? (
             <a
               href={brand.githubUrl}
-              className="text-xs text-zinc-500 transition hover:text-zinc-900 dark:hover:text-zinc-100"
+              className="text-xs text-zinc-700 transition hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
               target="_blank"
               rel="noreferrer"
             >
@@ -116,7 +116,7 @@ function NavLink({
       className={
         active
           ? "rounded-md bg-zinc-900 px-2.5 py-1 text-xs font-medium text-white dark:bg-zinc-100 dark:text-zinc-900"
-          : "rounded-md px-2.5 py-1 text-xs font-medium text-zinc-500 transition hover:text-zinc-900 dark:hover:text-zinc-100"
+          : "rounded-md px-2.5 py-1 text-xs font-medium text-zinc-700 transition hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
       }
     >
       {children}

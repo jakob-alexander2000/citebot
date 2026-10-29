@@ -9,8 +9,8 @@ export type DemoQuestion = {
 export const DEMO_QUESTIONS: readonly DemoQuestion[] = [
   {
     question:
-      "How many paid vacation days do full-time employees get, and when does unused PTO expire?",
-    expects: "30 days; unused PTO does not carry over past March 31",
+      "How many paid vacation days do full-time employees get, and when does unused paid time off expire?",
+    expects: "30 days; unused paid time off does not carry over past March 31",
     source: "pto-and-leave.md",
   },
   {

@@ -28,7 +28,7 @@ export default async function HandbookPage() {
       <SiteHeader active="handbook" locale={locale} source={source} />
       <Suspense
         fallback={
-          <p className="mx-auto w-full max-w-5xl px-4 py-12 text-sm text-zinc-500 sm:px-6">
+          <p className="mx-auto w-full max-w-5xl px-4 py-12 text-sm text-zinc-700 dark:text-zinc-300 sm:px-6">
             {copy.loadingHandbook}
           </p>
         }

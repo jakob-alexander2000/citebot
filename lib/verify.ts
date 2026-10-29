@@ -117,7 +117,7 @@ export async function verifyAnswer(
   const brand = getBrand(locale);
   const languageLine =
     "Write claim and evidence in English. Verdict values stay pass, fail, or unsupported.";
-  const prompt = `You are the verify step for ${brand.name} (handbook RAG).
+  const prompt = `You are the verify step for ${brand.name}. The answer was written from a search over the handbook documents.
 Split the ASSISTANT ANSWER into atomic factual claims (1–6). For each claim, check ONLY the RETRIEVED CONTEXT below.
 ${languageLine}
 

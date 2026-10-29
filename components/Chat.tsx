@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
+import { ASK_TIMEOUT_MESSAGE, ASK_TIMEOUT_MS, messageForAskError } from "@/lib/ask-client";
 import { AgentSteps } from "./AgentSteps";
 import { Citations } from "./Citations";
 import { EvidencePanel } from "./EvidencePanel";
+import { InlineMarkdown, Markdown } from "./Markdown";
 import { fingerprint } from "@/lib/analytics";
 import { getBrand } from "@/lib/brand";
 import { activeDemoQuestions } from "@/lib/demo-questions";
@@ -114,6 +116,7 @@ export function Chat({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: trimmed, locale }),
+        signal: AbortSignal.timeout(ASK_TIMEOUT_MS),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -160,8 +163,7 @@ export function Chat({
         }
       }
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Something went wrong.";
+      const message = messageForAskError(err);
       setMessages((m) => [
         ...m,
         {
@@ -190,13 +192,13 @@ export function Chat({
         {messages.length === 0 ? (
           <div className="flex flex-1 flex-col justify-center gap-10">
             <div className="max-w-xl">
-              <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-zinc-500">
+              <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-zinc-700 dark:text-zinc-300">
                 {brand.org}
               </p>
               <h1 className="mt-3 text-[2rem] font-medium leading-tight tracking-tight text-zinc-900 dark:text-zinc-50">
                 {copy.askHeadline}
               </h1>
-              <p className="mt-4 max-w-md text-[15px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+              <p className="mt-4 max-w-md text-[15px] leading-relaxed text-zinc-700 dark:text-zinc-300">
                 {copy.askLead}{" "}
                 <Link
                   href="/handbook"
@@ -218,12 +220,12 @@ export function Chat({
             {TOPICS.length > 0 && (
             <section>
               <div className="mb-3 flex items-baseline justify-between">
-                <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+                <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-700 dark:text-zinc-300">
                   {copy.covered}
                 </h2>
                 <Link
                   href="/handbook"
-                  className="text-xs text-zinc-500 transition hover:text-zinc-900 dark:hover:text-zinc-100"
+                  className="text-xs text-zinc-700 transition hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
                 >
                   {copy.openHandbook} →
                 </Link>
@@ -237,8 +239,8 @@ export function Chat({
                     <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                       {t.title}
                     </p>
-                    <p className="mt-0.5 text-xs leading-relaxed text-zinc-500">
-                      {t.desc}
+                    <p className="mt-0.5 text-xs leading-relaxed text-zinc-700 dark:text-zinc-300">
+                      <InlineMarkdown content={t.desc} />
                     </p>
                   </li>
                 ))}
@@ -247,7 +249,7 @@ export function Chat({
             )}
 
             <section data-chip-variant={chipVariant ?? "default"}>
-              <h2 className="mb-3 text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+              <h2 className="mb-3 text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-700 dark:text-zinc-300">
                 {copy.tryAsking}
               </h2>
               <div className="flex flex-col items-start gap-2">
@@ -294,9 +296,28 @@ export function Chat({
                       : "max-w-[95%]"
                   }
                 >
-                  <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-zinc-800 dark:text-zinc-100">
-                    {msg.content}
-                  </p>
+                  {msg.error ? (
+                    <div className="text-[15px] leading-relaxed">
+                      <p>{msg.content}</p>
+                      {msg.content === ASK_TIMEOUT_MESSAGE ? (
+                        <button
+                          type="button"
+                          className="mt-3 rounded-lg border border-red-300 px-3 py-1.5 text-sm font-medium text-red-900 dark:border-red-800 dark:text-red-100"
+                          onClick={() => {
+                            const previous = [...messages].reverse().find((item) => item.role === "user");
+                            if (previous) void ask(previous.content, { via: "typed" });
+                          }}
+                        >
+                          Try again
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : (
+                    <Markdown
+                      content={msg.content}
+                      className="text-[15px] leading-relaxed text-zinc-800 dark:text-zinc-200"
+                    />
+                  )}
                   {msg.steps && msg.steps.length > 0 ? (
                     <AgentSteps steps={msg.steps} locale={locale} />
                   ) : null}
@@ -314,7 +335,7 @@ export function Chat({
               ),
             )}
             {loading ? (
-              <div className="flex items-center gap-2 text-sm text-zinc-500">
+              <div className="flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
                 <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-zinc-400" />
                 {copy.reading}
               </div>
@@ -333,7 +354,7 @@ export function Chat({
               onChange={(e) => setInput(e.target.value)}
               placeholder={copy.placeholder}
               disabled={loading}
-              className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-zinc-400 disabled:opacity-60"
+              className="min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-zinc-700 dark:placeholder:text-zinc-300 disabled:opacity-60"
             />
             <button
               type="submit"
@@ -344,7 +365,7 @@ export function Chat({
               {copy.ask}
             </button>
           </div>
-          <p className="mt-2.5 text-[11px] text-zinc-400">
+          <p className="mt-2.5 text-[11px] text-zinc-700 dark:text-zinc-300">
             {brand.footerNote}
           </p>
         </form>
