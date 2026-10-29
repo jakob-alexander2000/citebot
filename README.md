@@ -8,7 +8,7 @@ CiteBot answers a question from one sample employee handbook and shows the passa
 
 Each claim is checked against those passages and marked pass, fail, or unsupported. When the pages do not cover the question, a straight refusal counts as pass.
 
-The latest recorded run passed 8 of 8 questions on 2026-10-29 (commit `6bfa598`). `npm run eval` rewrites [evals/last-run.json](evals/last-run.json), and the evals page reads that file: what was measured, how many questions, who added the cases, the date, the pass count, and the commit.
+The latest recorded run passed 8 of 8 questions. `npm run eval` rewrites [evals/last-run.json](evals/last-run.json), and the evals page reads that file: what was measured, how many questions, who added the cases, the date, the pass count, and the commit.
 
 ## What was built, and what Jakob decided
 

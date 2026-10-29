@@ -22,8 +22,8 @@ async function main() {
   const report = await runGoldenSuite();
   console.log(formatReport(report));
 
-  const authorLine = git("git log -1 --format=%an%x09%h -- evals/golden.json");
-  const [casesAuthor, casesCommit] = authorLine.split("\t");
+  const introduced = git("git log --follow --reverse --format=%an%x09%h -- evals/golden.json").split("\n")[0] ?? "";
+  const [casesAuthor, casesCommit] = introduced.split("\t");
   const record = {
     measured: report.total
       ? "Each committed handbook question runs the agent loop, then verify marks every claim pass, fail, or unsupported."
