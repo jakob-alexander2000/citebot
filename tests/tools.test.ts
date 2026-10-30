@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
 import { loadCorpusChunks } from "../lib/corpus";
@@ -113,5 +115,24 @@ describe("handbook tools", () => {
       { chunks, search: async () => lexicalSearch(chunks, "vacation", 4) },
     );
     assert.match(quote.summary, /pto-and-leave.md/);
+  });
+
+  it("keeps language-neutral files and drops the other language folder", async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "citebot-corpus-"));
+    fs.writeFileSync(path.join(dir, "shared.md"), "# Shared\n\nDesk days are Tuesday and Thursday.");
+    fs.mkdirSync(path.join(dir, "de"));
+    fs.writeFileSync(path.join(dir, "de", "nur.md"), "# Nur\n\nDieser Text bleibt in seinem Ordner.");
+    fs.mkdirSync(path.join(dir, "en"));
+    fs.writeFileSync(path.join(dir, "en", "only.md"), "# Only\n\nEnglish folder text.");
+
+    const en = await loadCorpusChunks({ dir, locale: "en" });
+    assert.ok(en.some((chunk) => chunk.source === "shared.md"));
+    assert.ok(en.some((chunk) => chunk.source === "en/only.md"));
+    assert.equal(en.some((chunk) => chunk.source.startsWith("de/")), false);
+
+    const de = await loadCorpusChunks({ dir, locale: "de" });
+    assert.ok(de.some((chunk) => chunk.source === "shared.md"));
+    assert.ok(de.some((chunk) => chunk.source === "de/nur.md"));
+    assert.equal(de.some((chunk) => chunk.source.startsWith("en/")), false);
   });
 });

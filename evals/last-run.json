@@ -1,0 +1,12 @@
+{
+  "measured": "Each committed handbook question runs the agent loop, then verify marks every claim pass, fail, or unsupported.",
+  "questionCount": 8,
+  "passed": 8,
+  "failed": 0,
+  "score": "8/8 (100%)",
+  "ranAt": "2026-10-29T20:24:01.243Z",
+  "commit": "467306657f213589116916544d6c2b20322b229b",
+  "casesAuthor": "Jakob Alexander",
+  "casesCommit": "3a7539d",
+  "casesReason": ""
+}

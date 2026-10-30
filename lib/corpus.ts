@@ -7,15 +7,17 @@ import { extractPdfText, titleFromPlainText } from "./pdf";
 const TARGET_CHARS = 700;
 const CORPUS_EXTS = [".md", ".pdf"] as const;
 
+const DEFAULT_CORPUS = "examples/nordlicht-corpus";
+
 function corpusDir(): string {
-  // Relative to project root only (e.g. corpus or client-docs).
-  // Default "corpus" stays statically joinable for Vercel file tracing;
+  // Relative to project root only.
+  // The default path stays statically joinable for file tracing;
   // CORPUS_DIR overrides use turbopackIgnore (pair with outputFileTracingIncludes).
   const rel = process.env.CORPUS_DIR?.trim();
   if (rel) {
     return path.join(/*turbopackIgnore: true*/ process.cwd(), rel);
   }
-  return path.join(process.cwd(), "corpus");
+  return path.join(process.cwd(), DEFAULT_CORPUS);
 }
 
 export function corpusRoot(dir?: string): string {
@@ -34,7 +36,7 @@ export type CorpusEntry = {
 };
 
 export type LoadCorpusOptions = {
-  /** Absolute or project-relative corpus root. Defaults to CORPUS_DIR or `corpus`. */
+  /** Absolute or project-relative corpus root. Defaults to CORPUS_DIR or the sample handbook. */
   dir?: string;
   /**
    * Keep language-neutral files plus this language.

@@ -1,10 +1,3 @@
-import type { BrandSkin } from "./brand";
-
-/** The public scorecard is the English CiteBot skin. Other deploys keep their handbook. */
-export function showCitebotEvals(skin: BrandSkin): boolean {
-  return skin === "craft";
-}
-
 export type EvalFailMode = {
   id: string;
   title: string;
@@ -41,7 +34,7 @@ export const EVAL_FAIL_MODES: readonly EvalFailMode[] = [
     id: "verify-disagreed",
     title: "Verify disagreed",
     check: "verification-summary",
-    body: "A grounded case came back mixed, ungrounded, or with a fail or unsupported claim. The wrong-count case is the mirror: it fails the suite when verify lets “25 days” through as pass.",
+    body: "A supported case came back mixed, unsupported, or with a fail or unsupported claim. The wrong-count case is the mirror: it fails the suite when verify lets “25 days” through as pass.",
   },
   {
     id: "stopped",
@@ -54,33 +47,18 @@ export const EVAL_FAIL_MODES: readonly EvalFailMode[] = [
 export const EVAL_SCORECARD = {
   kicker: "Evals",
   title: "A fixed set of handbook questions.",
-  lead: "Eight questions from the sample employee handbook. Each one runs the same agent loop as Ask — a handbook search, a draft, then verify — and the case passes or fails on that result.",
+  lead: "Eight questions from the sample employee handbook. Each one runs the same agent loop as Ask, with a stand-in in place of the model and an offline check in place of the model-based verify step. A failed question stops the build. It catches code changes, not live-model mistakes.",
   passTitle: "What pass means",
-  pass: "Every check on every case held. A grounded question stated the handbook fact, cited the page that contains it, and verify marked each claim pass (summary grounded). A gap question refused, and that refusal was pass because the passages do not answer it. The wrong-count case is a bad draft on purpose: it passes only when verify marks 25 days as fail against the page that says 30.",
+  pass: "Every check on every case held. A supported question stated the handbook fact, cited the page that contains it, and verify marked each claim pass. A gap question refused, and that refusal was pass because the passages do not answer it. The wrong-count case is a bad draft on purpose: it passes only when verify marks 25 days as fail against the page that says 30.",
   failTitle: "How a fail looks",
   failLead:
-    "A case fails when any one check misses. The command prints the case id and the check name. The suite exits with a failure, so CI goes red.",
+    "A case fails when any one check misses. The command prints the case id and the check name. The suite exits with a failure, so continuous integration goes red.",
   runTitle: "How to run",
   command: "npm run eval",
   offline:
-    "No API key. The loop reads the committed handbook under examples/nordlicht-corpus. Claims use the same pass, fail, and unsupported tokens as the live verify step. A figure in a claim that is missing from the retrieved passage is fail. A correct “not in the handbook” refusal is pass.",
+    "No model key. The loop reads the committed handbook under examples/nordlicht-corpus. Claims use the same pass, fail, and unsupported tokens as the live verify step. A figure in a claim that is missing from the retrieved passage is fail. A correct “not in the handbook” refusal is pass.",
   sibling:
-    "CI also runs the sibling citebot-evals fixture scorecard. That job replays saved replies. This command runs the agent loop.",
+    "Continuous integration also runs the sibling citebot-evals fixture scorecard. That job replays saved replies. This command runs the agent loop.",
   ask: "Ask the handbook",
   harness: "How the check works",
-} as const;
-
-export const EVAL_BOUNDARY = {
-  en: {
-    kicker: "Evals",
-    title: "This scorecard is the CiteBot handbook demo.",
-    body: "This deploy keeps the quality handbook and the verify write-up. The fixed question set is not part of that Q&A.",
-    back: "How verify works",
-  },
-  de: {
-    kicker: "Prüfliste",
-    title: "Diese Prüfliste ist die CiteBot-Demo.",
-    body: "Diese Umgebung bleibt beim QM-Handbuch und dem Nachweis. Die festen Fragen gehören nicht zu dieser Fragen-und-Antworten-Seite.",
-    back: "So funktioniert der Nachweis",
-  },
 } as const;

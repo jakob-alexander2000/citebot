@@ -4,9 +4,9 @@
 
 Full-time employees receive **30 days** of paid vacation per calendar year, plus German public holidays observed in Berlin.
 
-Part-time employees receive PTO pro-rated by FTE.
+Part-time employees receive paid time off pro-rated by FTE.
 
-Unused PTO does not carry over past March 31 of the following year unless a manager approves an exception in writing.
+Unused paid time off does not carry over past March 31 of the following year unless a manager approves an exception in writing.
 
 ## Requesting leave
 

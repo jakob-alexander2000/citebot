@@ -31,7 +31,7 @@ export function Markdown({ content, className = "" }: Props) {
           return (
             <h2
               key={i}
-              className="pt-2 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500"
+              className="pt-2 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-700 dark:text-zinc-300"
             >
               {inline(trimmed.slice(3))}
             </h2>
@@ -61,7 +61,7 @@ export function Markdown({ content, className = "" }: Props) {
           return (
             <ol
               key={i}
-              className="list-decimal space-y-2 pl-5 marker:text-zinc-400"
+              className="list-decimal space-y-2 pl-5 marker:text-zinc-700 dark:marker:text-zinc-300"
             >
               {lines
                 .filter((l) => l.trim())
@@ -82,19 +82,40 @@ export function Markdown({ content, className = "" }: Props) {
   );
 }
 
-function inline(text: string): ReactNode[] {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((part, i) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return (
-        <strong
-          key={i}
-          className="font-semibold text-zinc-900 dark:text-zinc-100"
-        >
+const INLINE = /(\*\*[^*\n]+\*\*|(?<![\w*])\*[^*\n]+\*(?!\*)|(?<![\w])_[^_\n]+_(?![\w]))/g;
+
+/** Bold and italics only. React escapes the text, so raw HTML stays text. */
+export function inline(text: string): ReactNode[] {
+  const nodes: ReactNode[] = [];
+  let last = 0;
+  let index = 0;
+  for (const match of text.matchAll(INLINE)) {
+    const start = match.index ?? 0;
+    if (start > last) nodes.push(text.slice(last, start));
+    const part = match[0];
+    if (part.startsWith("**")) {
+      nodes.push(
+        <strong key={index} className="font-semibold text-zinc-900 dark:text-zinc-100">
           {part.slice(2, -2)}
-        </strong>
+        </strong>,
       );
+    } else {
+      nodes.push(<em key={index}>{part.slice(1, -1)}</em>);
     }
-    return <span key={i}>{part}</span>;
-  });
+    last = start + part.length;
+    index += 1;
+  }
+  if (last < text.length) nodes.push(text.slice(last));
+  return nodes;
+}
+
+/** One line of an answer or a source snippet, with the same inline marks as the full renderer. */
+export function InlineMarkdown({
+  content,
+  className = "",
+}: {
+  content: string;
+  className?: string;
+}) {
+  return <span className={className}>{inline(content)}</span>;
 }

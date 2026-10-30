@@ -1,9 +1,8 @@
 /**
- * Chip order on the CiteBot /ask empty state.
+ * Chip order on the /ask empty state.
  * control keeps handbook order. demo_first leads with the Friday demo page.
- * The cookie sticks for 180 days. Other skins do not assign a variant.
+ * The cookie sticks for 180 days.
  */
-import type { BrandSkin } from "./brand";
 
 export const CHIP_ORDER_EXPERIMENT = "ask_chip_order";
 export const CHIP_ORDER_COOKIE = "cb_chip_order";
@@ -23,16 +22,6 @@ export function assignChipOrder(
   if (isChipOrderVariant(cookie)) return { variant: cookie, fresh: false };
   const variant: ChipOrderVariant = random < 0.5 ? "control" : "demo_first";
   return { variant, fresh: true };
-}
-
-/** Craft skin only. Product and client deploys keep the handbook order. */
-export function chipExperimentForSkin(
-  skin: BrandSkin,
-  cookie: string | null | undefined,
-  random: number,
-): { variant: ChipOrderVariant | null; fresh: boolean } {
-  if (skin !== "craft") return { variant: null, fresh: false };
-  return assignChipOrder(cookie, random);
 }
 
 /** Move demo-day.md to the front. Lists without that file stay put. */

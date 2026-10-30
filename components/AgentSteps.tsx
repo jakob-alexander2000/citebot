@@ -18,7 +18,7 @@ export function AgentSteps({
 
   return (
     <div className="mt-4">
-      <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+      <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-700 dark:text-zinc-300">
         {copy.steps}
         {tools > 0 ? ` · ${tools} ${toolWord}` : ""}
       </p>
@@ -28,13 +28,13 @@ export function AgentSteps({
             key={`${step.kind}-${step.label}-${index}`}
             className="flex flex-wrap items-baseline gap-x-2 text-[12px] leading-relaxed"
           >
-            <span className="font-mono text-[10px] tabular-nums text-zinc-400">
+            <span className="font-mono text-[10px] tabular-nums text-zinc-700 dark:text-zinc-300">
               {String(index + 1).padStart(2, "0")}
             </span>
             <span className="font-medium text-zinc-800 dark:text-zinc-100">
               {step.label}
             </span>
-            <span className="min-w-0 text-zinc-500">{step.detail}</span>
+            <span className="min-w-0 text-zinc-700 dark:text-zinc-300">{step.detail}</span>
           </li>
         ))}
       </ol>

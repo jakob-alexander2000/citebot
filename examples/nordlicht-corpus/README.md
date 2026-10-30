@@ -1,5 +1,3 @@
-# Nordlicht sample (fixture corpus)
+# Nordlicht sample handbook
 
-English employee-handbook files kept so the tool tests, the agent-loop tests, and `npm run eval` can search a committed corpus without a network. Grounded Docs does not retrieve this folder.
-
-The product handbook is `corpus/de` and `corpus/en`.
+English employee-handbook files. CiteBot answers from this folder, and `npm run eval` plus the fixture tests search it without a network.

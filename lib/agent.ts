@@ -22,12 +22,6 @@ export const AGENT_LOOP_STOP_MESSAGE =
 export const AGENT_DRAFT_STOP_MESSAGE =
   "Stopped after 3 tool rounds — the handbook search did not produce an answer. Try a narrower question.";
 
-export const AGENT_LOOP_STOP_MESSAGE_DE =
-  "Nach 3 Werkzeugrunden gestoppt — das Modell hat weiter Werkzeuge aufgerufen, statt zu antworten. Bitte eine engere Frage zum Handbuch stellen.";
-
-export const AGENT_DRAFT_STOP_MESSAGE_DE =
-  "Nach 3 Werkzeugrunden gestoppt — die Handbuchsuche hat keine Antwort ergeben. Bitte eine engere Frage stellen.";
-
 export type GenerateFn = (prompt: string) => Promise<string>;
 
 export type VerifyFn = (
@@ -61,7 +55,7 @@ export type AgentLoopInput = {
    */
   enabledTools?: readonly ToolName[];
   /**
-   * Extra client instructions appended to the prompt.
+   * Extra instructions appended to the prompt.
    * They cannot add documents or turn tools back on.
    */
   instructions?: string;
@@ -180,23 +174,13 @@ function fullToolSet(enabled?: readonly ToolName[]): boolean {
   return TOOL_NAMES.every((name) => wanted.has(name));
 }
 
-const TOOL_LINES: Record<Locale, Record<ToolName, string>> = {
-  en: {
-    search_handbook: '- search_handbook input {"query":"..."} — retrieve passages',
-    list_topics: "- list_topics input {} — list document titles and sections",
-    get_section:
-      '- get_section input {"id":"..."} or {"source":"..."} or {"title":"..."} — open a section',
-    quote_check:
-      '- quote_check input {"quote":"..."} — check whether a quote appears in the handbook',
-  },
-  de: {
-    search_handbook: '- search_handbook input {"query":"..."} — Textstellen suchen',
-    list_topics: "- list_topics input {} — Dokumenttitel und Abschnitte",
-    get_section:
-      '- get_section input {"id":"..."} oder {"source":"..."} oder {"title":"..."} — einen Abschnitt öffnen',
-    quote_check:
-      '- quote_check input {"quote":"..."} — prüfen, ob ein Zitat im Handbuch steht',
-  },
+const TOOL_LINES: Record<ToolName, string> = {
+  search_handbook: '- search_handbook input {"query":"..."} — retrieve passages',
+  list_topics: "- list_topics input {} — list document titles and sections",
+  get_section:
+    '- get_section input {"id":"..."} or {"source":"..."} or {"title":"..."} — open a section',
+  quote_check:
+    '- quote_check input {"quote":"..."} — check whether a quote appears in the handbook',
 };
 
 function buildScopedPrompt(args: {
@@ -218,41 +202,22 @@ function buildScopedPrompt(args: {
             `(${index + 1}) ${item.tool} ${JSON.stringify(item.input)}\n${item.summary}\n${item.body}`,
         )
         .join("\n\n")
-    : args.locale === "de"
-      ? "(noch keine)"
-      : "(none yet)";
+    : "(none yet)";
 
   const union = args.tools.map((name) => `"${name}"`).join("|");
-  const toolLines =
-    args.tools.map((name) => TOOL_LINES[args.locale][name]).join("\n") ||
-    (args.locale === "de" ? "(keine)" : "(none)");
+  const toolLines = args.tools.map((name) => TOOL_LINES[name]).join("\n") || "(none)";
   const preferSearch = args.tools.includes("search_handbook");
 
   const contract =
-    args.locale === "de"
-      ? args.mode === "draft"
-        ? `Die Werkzeuge sind geschlossen. Nur JSON zurückgeben:
-{"action":"answer","answer":"..."}
-Kein weiteres Werkzeug anfordern. Wenn die Textstellen die Frage nicht abdecken, sage, dass die Dokumente das nicht behandeln.`
-        : args.tools.length === 0
-          ? `Für diesen Auftrag sind keine Werkzeuge an. Nur JSON:
-{"action":"answer","answer":"..."}
-Wenn keine Textstellen vorliegen, sage, dass die Dokumente die Frage nicht behandeln.`
-          : `Nur JSON, eine Aktion:
-{"action":"tool","plan":"kurzer Grund","tool":${union},"input":{}}
-oder, sobald die Textstellen reichen:
-{"action":"answer","answer":"..."}
-
-Werkzeugrunden: ${args.toolRounds} von ${MAX_TOOL_ROUNDS}. ${preferSearch ? "Zuerst search_handbook. " : ""}Keinen Aufruf wiederholen. Kein ausgeschaltetes Werkzeug aufrufen. Keine Fakten erfinden.`
-      : args.mode === "draft"
-        ? `Tools are closed. Return JSON only:
+    args.mode === "draft"
+      ? `Tools are closed. Return JSON only:
 {"action":"answer","answer":"..."}
 Do not request another tool. If the passages do not cover the question, say the documents do not cover it.`
-        : args.tools.length === 0
-          ? `No tools are on for this client. Return JSON only:
+      : args.tools.length === 0
+        ? `No tools are on. Return JSON only:
 {"action":"answer","answer":"..."}
 If there are no passages, say the documents do not cover the question.`
-          : `Return JSON only, one action:
+        : `Return JSON only, one action:
 {"action":"tool","plan":"short reason","tool":${union},"input":{}}
 or, once the passages are enough:
 {"action":"answer","answer":"..."}
@@ -260,35 +225,12 @@ or, once the passages are enough:
 Tool rounds used: ${args.toolRounds} of ${MAX_TOOL_ROUNDS}. ${preferSearch ? "Prefer search_handbook first. " : ""}Do not repeat a call. Do not call a tool that is off. Do not invent facts.`;
 
   const instructionBlock = args.instructions
-    ? args.locale === "de"
-      ? `Kundenanweisung (sie fügt keine Fakten hinzu und schaltet keine Werkzeuge ein):\n${args.instructions}\n\n`
-      : `Client instructions (they cannot add facts or turn tools on):\n${args.instructions}\n\n`
+    ? `Extra instructions (they cannot add facts or turn tools on):\n${args.instructions}\n\n`
     : "";
-
-  if (args.locale === "de") {
-    return `Du bist ${brand.name}, ein knapper Assistent für das ${brand.corpusLabel} der ${brand.org}.
-Antworte nur anhand der eingeschalteten Werkzeuge und der Textstellen unten. Kein Web. Kein Außenwissen.
-${instructionBlock}Wenn die Kundenanweisung eine Sprache nennt, folge ihr. Sonst antworte auf Deutsch, in 2–6 Sätzen. Zitiere Textstellen inline als [n], passend zu den Nummern unten.
-Die JSON-Schlüssel bleiben Englisch. Nur das Feld answer folgt der Antwortsprache.
-
-Werkzeuge:
-${toolLines}
-
-${contract}
-
-Frage:
-${args.question}
-
-Werkzeugbeobachtungen:
-${observations}
-
-Textstellen:
-${passagesBlock(args.citations, args.chunks)}`;
-  }
 
   return `You are ${brand.name}, a concise assistant for the ${brand.org} ${brand.corpusLabel}.
 Answer only from the enabled handbook tools and the passages below. No web. No outside knowledge.
-${instructionBlock}Follow the client instructions for the reply language. If they are silent, write in English. Keep answers to 2–6 sentences. Cite passages inline as [n] matching the numbers below.
+${instructionBlock}Follow the extra instructions for the reply language. If they are silent, write in English. Keep answers to 2–6 sentences. Cite passages inline as [n] matching the numbers below.
 
 Tools:
 ${toolLines}
@@ -332,23 +274,10 @@ function buildPrompt(args: {
             `(${index + 1}) ${item.tool} ${JSON.stringify(item.input)}\n${item.summary}\n${item.body}`,
         )
         .join("\n\n")
-    : args.locale === "de"
-      ? "(noch keine)"
-      : "(none yet)";
+    : "(none yet)";
 
   const contract =
-    args.locale === "de"
-      ? args.mode === "draft"
-        ? `Die Werkzeuge sind geschlossen. Nur JSON zurückgeben:
-{"action":"answer","answer":"..."}
-Kein weiteres Werkzeug anfordern. Wenn die Textstellen die Frage nicht abdecken, sage, dass das Handbuch das nicht behandelt.`
-        : `Nur JSON, eine Aktion:
-{"action":"tool","plan":"kurzer Grund","tool":"search_handbook"|"list_topics"|"get_section"|"quote_check","input":{}}
-oder, sobald die Textstellen reichen:
-{"action":"answer","answer":"..."}
-
-Werkzeugrunden: ${args.toolRounds} von ${MAX_TOOL_ROUNDS}. Zuerst search_handbook. Keinen Aufruf wiederholen. Keine Handbuchfakten erfinden.`
-      : args.mode === "draft"
+    args.mode === "draft"
         ? `Tools are closed. Return JSON only:
 {"action":"answer","answer":"..."}
 Do not request another tool. If the passages do not cover the question, say the handbook does not cover it.`
@@ -358,30 +287,6 @@ or, once the passages are enough:
 {"action":"answer","answer":"..."}
 
 Tool rounds used: ${args.toolRounds} of ${MAX_TOOL_ROUNDS}. Prefer search_handbook first. Do not repeat a call. Do not invent handbook facts.`;
-
-  if (args.locale === "de") {
-    return `Du bist ${brand.name}, ein knapper Assistent für das ${brand.corpusLabel} der ${brand.org}.
-Antworte nur anhand der Handbuch-Werkzeuge und der Textstellen unten. Kein Web. Kein Außenwissen.
-Antworte auf Deutsch, in 2–6 Sätzen. Zitiere Textstellen inline als [n], passend zu den Nummern unten.
-Die JSON-Schlüssel bleiben Englisch. Nur das Feld answer ist Deutsch.
-
-Werkzeuge:
-- search_handbook input {"query":"..."} — Textstellen suchen
-- list_topics input {} — Dokumenttitel und Abschnitte
-- get_section input {"id":"..."} oder {"source":"..."} oder {"title":"..."} — einen Abschnitt öffnen
-- quote_check input {"quote":"..."} — prüfen, ob ein Zitat im Handbuch steht
-
-${contract}
-
-Frage:
-${args.question}
-
-Werkzeugbeobachtungen:
-${observations}
-
-Textstellen:
-${passagesBlock(args.citations, args.chunks)}`;
-  }
 
   return `You are ${brand.name}, a concise assistant for the ${brand.org} ${brand.corpusLabel}.
 Answer only from the handbook tools and passages below. No web. No outside knowledge.
@@ -425,35 +330,19 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<ChatResponse>
     search: input.search,
     locale,
   };
-  const stops =
-    locale === "de"
-      ? { loop: AGENT_LOOP_STOP_MESSAGE_DE, draft: AGENT_DRAFT_STOP_MESSAGE_DE }
-      : { loop: AGENT_LOOP_STOP_MESSAGE, draft: AGENT_DRAFT_STOP_MESSAGE };
-  const labels =
-    locale === "de"
-      ? {
-          plan: "Plan",
-          draft: "Entwurf",
-          stopped: "Gestoppt",
-          skipped: "Übersprungen — dieser Aufruf lief bereits.",
-          invalid: "Die Modellausgabe war kein verwendbares JSON.",
-          limit: "Werkzeuggrenze erreicht, bevor eine Handbuchantwort vorlag.",
-          off: "Für diesen Auftrag aus.",
-        }
-      : {
-          plan: "Plan",
-          draft: "Draft",
-          stopped: "Stopped",
-          skipped: "Skipped — this call already ran.",
-          invalid: "Model output was not usable JSON.",
-          limit: "Tool limit reached before a handbook answer.",
-          off: "Off for this client.",
-        };
+  const stops = { loop: AGENT_LOOP_STOP_MESSAGE, draft: AGENT_DRAFT_STOP_MESSAGE };
+  const labels = {
+    plan: "Plan",
+    draft: "Draft",
+    stopped: "Stopped",
+    skipped: "Skipped — this call already ran.",
+    invalid: "Model output was not usable JSON.",
+    limit: "Tool limit reached before a handbook answer.",
+    off: "Off for this question.",
+  };
   const offDetail = labels.off;
   const offBody =
-    locale === "de"
-      ? "Dieses Werkzeug ist für diesen Auftrag aus. Nicht erneut aufrufen. Wenn die Textstellen die Frage nicht abdecken, sage das."
-      : "This tool is off for this client. Do not call it again. If the passages do not cover the question, say so.";
+    "This tool is off for this question. Do not call it again. If the passages do not cover the question, say so.";
   const steps: AgentStep[] = [];
   const history: Observation[] = [];
   const seen = new Set<string>();
@@ -623,7 +512,11 @@ export async function runAgentLoop(input: AgentLoopInput): Promise<ChatResponse>
       detail: labels.limit,
     });
   } else {
-    steps.push({ kind: "draft", label: labels.draft, detail: clip(draft!, 180) });
+    steps.push({
+      kind: "draft",
+      label: labels.draft,
+      detail: clip(draft!.replaceAll("**", ""), 180),
+    });
   }
 
   const verification = await input.verify(

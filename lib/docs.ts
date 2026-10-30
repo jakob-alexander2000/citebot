@@ -15,15 +15,8 @@ export type HandbookDoc = {
   lang?: Locale;
 };
 
-/** Topic order for the QM handbook, then the older English sample. */
+/** Topic order for the sample employee handbook. */
 const ORDER = [
-  "qualitaetspolitik",
-  "quality-policy",
-  "dokumentenlenkung",
-  "document-control",
-  "capa",
-  "lieferanten",
-  "suppliers",
   "welcome",
   "pto-and-leave",
   "expense-policy",
@@ -41,7 +34,14 @@ function summaryFromText(content: string): string {
   const withoutTitle = content.replace(/^#\s+.+$/m, "").trim();
   const firstPara = withoutTitle
     .split(/\n{2,}/)
-    .map((p) => p.replace(/^##\s+.+$/m, "").replace(/\n/g, " ").trim())
+    .map((p) =>
+      p
+        .replace(/^##\s+.+$/m, "")
+        .replace(/\*\*(.+?)\*\*/g, "$1")
+        .replace(/^\s*[-*]\s+/gm, "")
+        .replace(/\n/g, " ")
+        .trim(),
+    )
     .find((p) => p.length > 0);
   if (!firstPara) return "";
   return firstPara.length > 140 ? `${firstPara.slice(0, 137)}…` : firstPara;

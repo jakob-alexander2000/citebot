@@ -62,14 +62,14 @@ export function EvidenceSnapshot({
     >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+          <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-700 dark:text-zinc-300">
             {evidenceKicker(locale)}
           </p>
           <p className="mt-1 text-sm font-medium text-zinc-900 dark:text-zinc-50">
             {summaryLabel(summary, locale)}
           </p>
         </div>
-        <p className="font-mono text-[10px] tabular-nums text-zinc-400">
+        <p className="font-mono text-[10px] tabular-nums text-zinc-700 dark:text-zinc-300">
           {evidenceTally(passCount, failCount, unsupportedCount, locale)}
         </p>
       </div>

@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { Locale } from "@/lib/locale";
 import { ui } from "@/lib/messages";
 import type { Citation } from "@/lib/types";
+import { InlineMarkdown } from "./Markdown";
 
 export function Citations({
   citations,
@@ -49,7 +50,7 @@ export function Citations({
 
   return (
     <div className="mt-4 border-t border-zinc-200/80 pt-3 dark:border-zinc-800">
-      <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-500">
+      <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-700 dark:text-zinc-300">
         {copy.sources}
       </p>
       <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Citations">
@@ -97,16 +98,16 @@ export function Citations({
                     <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-50">
                       {display.title}
                     </p>
-                    <p className="font-mono text-[10px] text-zinc-500">
+                    <p className="font-mono text-[10px] text-zinc-700 dark:text-zinc-300">
                       {display.source}
                     </p>
                   </div>
-                  <span className="shrink-0 font-mono text-[10px] tabular-nums text-zinc-400">
+                  <span className="shrink-0 font-mono text-[10px] tabular-nums text-zinc-700 dark:text-zinc-300">
                     {display.score.toFixed(3)}
                   </span>
                 </div>
-                <p className="text-[13px] leading-relaxed text-zinc-600 dark:text-zinc-300">
-                  {display.snippet}
+                <p className="text-[13px] leading-relaxed text-zinc-700 dark:text-zinc-300">
+                  <InlineMarkdown content={display.snippet} />
                 </p>
               </article>
             ) : null}

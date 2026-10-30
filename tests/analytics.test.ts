@@ -7,10 +7,9 @@ import { fingerprint, parseEvent, summarizeEvents } from "../lib/analytics";
 import { eventSummary, forwardEvent, recordEvent, resetEventLogForTests } from "../lib/event-log";
 import {
   assignChipOrder,
-  chipExperimentForSkin,
   orderChips,
 } from "../lib/experiment";
-import { NORDLICHT_QUESTIONS, DEMO_QUESTIONS } from "../lib/demo-questions";
+import { DEMO_QUESTIONS } from "../lib/demo-questions";
 
 const fixed = new Date("2026-10-27T12:00:00.000Z");
 
@@ -26,7 +25,7 @@ describe("event schema", () => {
 
   it("accepts a page view and a verify result", () => {
     const page = parseEvent(
-      { name: "page_view", props: { page: "ask", locale: "en", skin: "craft" } },
+      { name: "page_view", props: { page: "ask", locale: "en", skin: "citebot" } },
       fixed,
     );
     assert.equal(page.ok, true);
@@ -40,21 +39,21 @@ describe("event schema", () => {
         fail: 0,
         unsupported: 1,
         claims: 3,
-        skin: "product",
-        locale: "de",
+        skin: "citebot",
+        locale: "en",
       },
     });
     assert.equal(verify.ok, true);
   });
 
-  it("rejects question text, secrets, and German craft events", () => {
+  it("rejects question text and secrets", () => {
     const question = parseEvent({
       name: "ask_submit",
       props: {
         via: "typed",
         chars: 12,
         hash: "abcdef01",
-        skin: "craft",
+        skin: "citebot",
         locale: "en",
         question: "What is the PTO rule?",
       },
@@ -63,7 +62,7 @@ describe("event schema", () => {
 
     const secret = parseEvent({
       name: "page_view",
-      props: { page: "home", locale: "en", skin: "craft", token: "sk-live-secret-value" },
+      props: { page: "home", locale: "en", skin: "citebot", token: "sk-live-secret-value" },
     });
     assert.equal(secret.ok, false);
 
@@ -73,35 +72,11 @@ describe("event schema", () => {
         via: "typed",
         chars: 4,
         hash: "AIzaSyFakeKeyValue",
-        skin: "craft",
+        skin: "citebot",
         locale: "en",
       },
     });
     assert.equal(keyInValue.ok, false);
-
-    const germanCraft = parseEvent({
-      name: "page_view",
-      props: { page: "home", locale: "de", skin: "craft" },
-    });
-    assert.equal(germanCraft.ok, false);
-
-    const germanProduct = parseEvent({
-      name: "page_view",
-      props: { page: "home", locale: "de", skin: "product" },
-    });
-    assert.equal(germanProduct.ok, true);
-
-    const ignored = parseEvent({
-      name: "locale_ignored",
-      props: { requested: "de", skin: "craft" },
-    });
-    assert.equal(ignored.ok, true);
-
-    const ignoredProduct = parseEvent({
-      name: "locale_ignored",
-      props: { requested: "de", skin: "product" },
-    });
-    assert.equal(ignoredProduct.ok, false);
   });
 
   it("summarizes assignment and first-submit conversions by variant", () => {
@@ -122,7 +97,7 @@ describe("event schema", () => {
         via: "chip",
         chars: 40,
         hash: "abcdef01",
-        skin: "craft",
+        skin: "citebot",
         locale: "en",
       }),
     ];
@@ -145,33 +120,14 @@ describe("chip order experiment", () => {
     assert.deepEqual(assignChipOrder(null, 0.49), { variant: "control", fresh: true });
   });
 
-  it("does not assign outside the craft skin", () => {
-    assert.deepEqual(chipExperimentForSkin("product", "demo_first", 0.9), {
-      variant: null,
-      fresh: false,
-    });
-    assert.deepEqual(chipExperimentForSkin("client", undefined, 0.1), {
-      variant: null,
-      fresh: false,
-    });
-    assert.deepEqual(chipExperimentForSkin("craft", "control", 0.9), {
-      variant: "control",
-      fresh: false,
-    });
-  });
-
-  it("moves the Friday demo chip first and leaves the quality handbook alone", () => {
-    const control = orderChips(NORDLICHT_QUESTIONS, "control").map((item) => item.source);
-    const lead = orderChips(NORDLICHT_QUESTIONS, "demo_first").map((item) => item.source);
+  it("moves the Friday page first", () => {
+    const control = orderChips(DEMO_QUESTIONS, "control").map((item) => item.source);
+    const lead = orderChips(DEMO_QUESTIONS, "demo_first").map((item) => item.source);
     assert.deepEqual(control, ["pto-and-leave.md", "expense-policy.md", "demo-day.md"]);
     assert.deepEqual(lead, ["demo-day.md", "pto-and-leave.md", "expense-policy.md"]);
     assert.deepEqual(
-      orderChips(DEMO_QUESTIONS.en, "demo_first").map((item) => item.source),
-      DEMO_QUESTIONS.en.map((item) => item.source),
-    );
-    assert.deepEqual(
-      orderChips(DEMO_QUESTIONS.de, null).map((item) => item.question),
-      DEMO_QUESTIONS.de.map((item) => item.question),
+      orderChips([{ source: "welcome.md", question: "Hi" }], "demo_first").map((item) => item.source),
+      ["welcome.md"],
     );
   });
 });
@@ -195,7 +151,7 @@ describe("event log", () => {
   it("appends a JSON line and summarizes the ring", () => {
     resetEventLogForTests(filePath);
     const parsed = parseEvent(
-      { name: "page_view", props: { page: "harness", locale: "en", skin: "craft" } },
+      { name: "page_view", props: { page: "harness", locale: "en", skin: "citebot" } },
       fixed,
     );
     assert.equal(parsed.ok, true);
@@ -216,7 +172,7 @@ describe("event log", () => {
     }) as typeof fetch;
 
     const parsed = parseEvent(
-      { name: "page_view", props: { page: "home", locale: "en", skin: "product" } },
+      { name: "page_view", props: { page: "home", locale: "en", skin: "citebot" } },
       fixed,
     );
     assert.equal(parsed.ok, true);

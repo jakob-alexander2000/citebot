@@ -9,8 +9,8 @@
     "lint": "eslint",
     "ingest": "tsx scripts/ingest.ts",
     "eval": "tsx scripts/eval.ts",
-    "test": "tsx --test tests/verify.test.ts tests/tools.test.ts tests/agent-loop.test.ts tests/llm.test.ts tests/locale.test.ts tests/qm.test.ts tests/brand.test.ts tests/analytics.test.ts tests/onboard.test.ts tests/eval-harness.test.ts",
-    "test:ci": "tsx --test tests/verify.test.ts tests/tools.test.ts tests/agent-loop.test.ts tests/llm.test.ts tests/locale.test.ts tests/qm.test.ts tests/brand.test.ts tests/analytics.test.ts tests/onboard.test.ts tests/eval-harness.test.ts"
+    "test": "tsx --test tests/verify.test.ts tests/tools.test.ts tests/agent-loop.test.ts tests/llm.test.ts tests/locale.test.ts tests/brand.test.ts tests/analytics.test.ts tests/eval-harness.test.ts tests/contrast.test.ts tests/markdown.test.ts tests/ask-client.test.ts tests/public-copy.test.ts tests/eval-record.test.ts",
+    "test:ci": "tsx --test tests/verify.test.ts tests/tools.test.ts tests/agent-loop.test.ts tests/llm.test.ts tests/locale.test.ts tests/brand.test.ts tests/analytics.test.ts tests/eval-harness.test.ts tests/contrast.test.ts tests/markdown.test.ts tests/ask-client.test.ts tests/public-copy.test.ts tests/eval-record.test.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -32,5 +32,5 @@
     "tsx": "^4.23.15",
     "typescript": "^5"
   },
-  "description": "Grounded Docs — bilingual QM handbook Q&A with citations"
+  "description": "CiteBot — handbook answers with citations and a verify step"
 }

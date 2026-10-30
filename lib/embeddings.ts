@@ -15,6 +15,25 @@ export function getChatModel(): string {
 }
 
 const EMBED_BATCH_SIZE = 16;
+const EMBED_CALL_MS = 20_000;
+
+function withDeadline<T>(work: Promise<T>, ms: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`${label} timed out after ${Math.round(ms / 1000)} seconds.`));
+    }, ms);
+    work.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err: unknown) => {
+        clearTimeout(timer);
+        reject(err);
+      },
+    );
+  });
+}
 
 export function getGemini(): GoogleGenerativeAI {
   const key = process.env.GEMINI_API_KEY;
@@ -37,12 +56,16 @@ export async function embedTexts(
 
   for (let i = 0; i < texts.length; i += EMBED_BATCH_SIZE) {
     const batch = texts.slice(i, i + EMBED_BATCH_SIZE);
-    const result = await model.batchEmbedContents({
-      requests: batch.map((text) => ({
-        content: { role: "user", parts: [{ text }] },
-        taskType,
-      })),
-    });
+    const result = await withDeadline(
+      model.batchEmbedContents({
+        requests: batch.map((text) => ({
+          content: { role: "user", parts: [{ text }] },
+          taskType,
+        })),
+      }),
+      EMBED_CALL_MS,
+      "Embeddings",
+    );
     for (const emb of result.embeddings) {
       out.push(emb.values);
     }
