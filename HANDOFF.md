@@ -2,9 +2,11 @@
 
 Branch: `cursor/answer-core-56ce`
 
-Commit SHA: filled in the pull request body from `git rev-parse HEAD` after the final push. This file is in that commit, so the SHA below is the parent of the handoff-sha update if a follow-up commit was needed. See the pull request head.
+Implementation commit: `5e159c157e2f92303915ef36e4093123dff1e3d5`
 
-Vercel deployment: not created by this session before the push. Check the pull request for a preview. No deployment id was available here.
+This file's SHA line was added in the following commit. The pull request head is that commit. `git rev-parse HEAD` on `cursor/answer-core-56ce` is the one to review.
+
+Vercel deployment: none at the time of the implementation commit. The pull request is the place a preview would appear. No deployment id was available in this session.
 
 ## Acceptance
 
