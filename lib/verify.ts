@@ -1,5 +1,5 @@
+import { checkClaims } from "./core/claims";
 import type { Locale } from "./locale";
-import { generateWithFallback, ProviderUnavailableError } from "./llm";
 import type {
   Citation,
   ClaimVerdict,
@@ -7,7 +7,6 @@ import type {
   Verification,
   VerificationSummary,
 } from "./types";
-import { getBrand } from "./brand";
 
 const VERDICTS = new Set<ClaimVerdict>(["pass", "fail", "unsupported"]);
 
@@ -70,119 +69,57 @@ export function parseVerifierClaims(
 }
 
 /**
- * Shared verify path: check the model's answer against the same retrieved
- * handbook chunks that grounded generation. Returns per-claim pass / fail /
- * unsupported — not a cosmetic confidence score.
+ * Check an answer against the passages already retrieved.
+ * This path does not call a model vendor.
  */
-function verifyFallback() {
-  return {
-    emptyClaim: "(empty answer)",
-    emptyEvidence: "No answer text to verify.",
-    parseClaim: "Verification could not parse claim list.",
-    parseEvidence: "Verifier returned empty or invalid JSON.",
-    downClaim: "Verification could not run.",
-    downEvidence:
-      "The AI provider is temporarily unavailable. Please try again in a moment.",
-    failed: "verify failed",
-  };
-}
-
 export async function verifyAnswer(
   question: string,
   answer: string,
   citations: Citation[],
   locale: Locale = "en",
 ): Promise<Verification> {
-  const copy = verifyFallback();
+  void question;
+  void locale;
   if (!answer.trim()) {
     return {
       summary: "ungrounded",
       claims: [
         {
-          claim: copy.emptyClaim,
+          claim: "(empty answer)",
           verdict: "unsupported",
-          evidence: copy.emptyEvidence,
+          evidence: "No answer text to verify.",
         },
       ],
     };
   }
 
-  const context = citations
-    .map(
-      (c, i) =>
-        `[${i + 1}] id=${c.id} source=${c.source} title=${c.title}\n${c.snippet}`,
-    )
-    .join("\n\n");
-
-  const brand = getBrand(locale);
-  const languageLine =
-    "Write claim and evidence in English. Verdict values stay pass, fail, or unsupported.";
-  const prompt = `You are the verify step for ${brand.name}. The answer was written from a search over the handbook documents.
-Split the ASSISTANT ANSWER into atomic factual claims (1–6). For each claim, check ONLY the RETRIEVED CONTEXT below.
-${languageLine}
-
-Verdict rules:
-- "pass": the claim is directly supported by a passage in the context (quote a short phrase in evidence; set citationId to that chunk's id).
-- "fail": the claim contradicts the context (say how; cite the conflicting chunk id when possible).
-- "unsupported": the claim is not backed by the context (including invented facts). If the answer correctly says the handbook does not cover the question, that refusal claim is "pass" with evidence explaining the gap.
-
-Do not use outside knowledge. Do not invent chunk ids.
-
-Return JSON only:
-{"claims":[{"claim":"...","verdict":"pass"|"fail"|"unsupported","evidence":"...","citationId":"optional-id"}]}
-
-QUESTION: ${question}
-
-ASSISTANT ANSWER:
-${answer}
-
-RETRIEVED CONTEXT:
-${context || "(no retrieved passages)"}`;
-
-  try {
-    const result = await generateWithFallback({
-      prompt,
-      json: true,
-      temperature: 0,
-    });
-    const text = result.text.trim();
-    const claims = parseVerifierClaims(text, citations);
-    if (claims.length === 0) {
-      return {
-        summary: "ungrounded",
-        claims: [
-          {
-            claim: copy.parseClaim,
-            verdict: "unsupported",
-            evidence: copy.parseEvidence,
-          },
-        ],
-      };
-    }
-    return { summary: summarizeClaims(claims), claims };
-  } catch (err) {
-    if (err instanceof ProviderUnavailableError) {
-      return {
-        summary: "unavailable",
-        claims: [
-          {
-            claim: copy.downClaim,
-            verdict: "unsupported",
-            evidence: copy.downEvidence,
-          },
-        ],
-      };
-    }
-    const message = err instanceof Error ? err.message : copy.failed;
+  const sentences = checkClaims(
+    answer,
+    citations.map((citation) => ({
+      id: citation.id,
+      source: citation.source,
+      title: citation.title,
+      text: citation.snippet,
+      score: citation.score,
+      headingPath: [citation.title],
+    })),
+  );
+  const claims: EvidenceClaim[] = sentences.map((sentence) => {
+    const flagged = sentence.flaggedConditions.length > 0;
+    const verdict: ClaimVerdict = flagged
+      ? "fail"
+      : sentence.match === "supported"
+        ? "pass"
+        : "unsupported";
+    const evidence = flagged
+      ? `Dropped ${sentence.flaggedConditions.map((flag) => flag.kind).join(", ")}.`
+      : sentence.passages[0]?.text.slice(0, 180) || "No matching passage.";
     return {
-      summary: "unavailable",
-      claims: [
-        {
-          claim: copy.downClaim,
-          verdict: "unsupported",
-          evidence: message,
-        },
-      ],
+      claim: sentence.text,
+      verdict,
+      evidence,
+      citationId: sentence.passages[0]?.id,
     };
-  }
+  });
+  return { summary: summarizeClaims(claims), claims };
 }

@@ -1,101 +1,552 @@
 {
-  "method": "BM25 k1=1.2 b=0.75, top 3, the keyword ranker from retrieval-autopsy. A hit means a top-3 chunk has the labeled source file and its own text contains the labeled phrase. before ranks the passage text. after ranks the same passage with a deterministic context sentence prepended. Neural embeddings were not run.",
+  "method": "Top 3. A hit means the chunk source file matches and the chunk's own text contains the labeled phrase. BM25 uses k1=1.2 and b=0.75 on the passage plus its context sentence. Vector is cosine over Workers AI @cf/baai/bge-m3 embeddings of that same text. Hybrid is reciprocal rank fusion (k=60) of the two full lists. Labels were written before this run. Embeddings were produced by @cf/baai/bge-m3.",
   "k": 3,
-  "labeled": 8,
-  "neuralEmbeddings": null,
-  "before": {
+  "labeled": 29,
+  "embedder": "@cf/baai/bge-m3",
+  "bm25": {
     "k": 3,
-    "total": 8,
-    "hits": 8,
-    "recallAt3": 1,
-    "mrr": 1,
+    "total": 29,
+    "hits": 22,
+    "recallAt3": 0.7586,
+    "mrr": 0.7184,
     "cases": [
       {
         "id": "pto-days",
+        "kind": "direct",
         "rank": 1,
         "hit": true
       },
       {
         "id": "carryover",
+        "kind": "direct",
         "rank": 1,
         "hit": true
       },
       {
         "id": "meal",
+        "kind": "direct",
         "rank": 1,
         "hit": true
       },
       {
         "id": "receipt",
+        "kind": "direct",
         "rank": 1,
         "hit": true
       },
       {
         "id": "demo",
+        "kind": "direct",
         "rank": 1,
         "hit": true
       },
       {
         "id": "desk",
+        "kind": "direct",
         "rank": 1,
         "hit": true
       },
       {
         "id": "sick-note",
+        "kind": "direct",
         "rank": 1,
         "hit": true
       },
       {
         "id": "secret",
+        "kind": "direct",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "pto-paraphrase",
+        "kind": "paraphrase",
+        "rank": 2,
+        "hit": true
+      },
+      {
+        "id": "carry-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "meal-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "receipt-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "demo-paraphrase",
+        "kind": "paraphrase",
+        "rank": null,
+        "hit": false
+      },
+      {
+        "id": "desk-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "sick-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "secret-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "equipment-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "long-leave-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "guests-paraphrase",
+        "kind": "paraphrase",
+        "rank": 3,
+        "hit": true
+      },
+      {
+        "id": "devices-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "remote-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-pto",
+        "kind": "cross-language",
+        "rank": null,
+        "hit": false
+      },
+      {
+        "id": "de-carry",
+        "kind": "cross-language",
+        "rank": null,
+        "hit": false
+      },
+      {
+        "id": "de-meal",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-receipt",
+        "kind": "cross-language",
+        "rank": null,
+        "hit": false
+      },
+      {
+        "id": "de-demo",
+        "kind": "cross-language",
+        "rank": null,
+        "hit": false
+      },
+      {
+        "id": "de-desk",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-sick",
+        "kind": "cross-language",
+        "rank": null,
+        "hit": false
+      },
+      {
+        "id": "de-secret",
+        "kind": "cross-language",
+        "rank": null,
+        "hit": false
+      }
+    ]
+  },
+  "vector": {
+    "k": 3,
+    "total": 29,
+    "hits": 29,
+    "recallAt3": 1,
+    "mrr": 0.9828,
+    "cases": [
+      {
+        "id": "pto-days",
+        "kind": "direct",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "carryover",
+        "kind": "direct",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "meal",
+        "kind": "direct",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "receipt",
+        "kind": "direct",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "demo",
+        "kind": "direct",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "desk",
+        "kind": "direct",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "sick-note",
+        "kind": "direct",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "secret",
+        "kind": "direct",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "pto-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "carry-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "meal-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "receipt-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "demo-paraphrase",
+        "kind": "paraphrase",
+        "rank": 2,
+        "hit": true
+      },
+      {
+        "id": "desk-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "sick-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "secret-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "equipment-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "long-leave-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "guests-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "devices-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "remote-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-pto",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-carry",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-meal",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-receipt",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-demo",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-desk",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-sick",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-secret",
+        "kind": "cross-language",
         "rank": 1,
         "hit": true
       }
     ]
   },
-  "after": {
+  "hybrid": {
     "k": 3,
-    "total": 8,
-    "hits": 8,
+    "total": 29,
+    "hits": 29,
     "recallAt3": 1,
-    "mrr": 1,
+    "mrr": 0.9483,
     "cases": [
       {
         "id": "pto-days",
+        "kind": "direct",
         "rank": 1,
         "hit": true
       },
       {
         "id": "carryover",
+        "kind": "direct",
         "rank": 1,
         "hit": true
       },
       {
         "id": "meal",
+        "kind": "direct",
         "rank": 1,
         "hit": true
       },
       {
         "id": "receipt",
+        "kind": "direct",
         "rank": 1,
         "hit": true
       },
       {
         "id": "demo",
+        "kind": "direct",
         "rank": 1,
         "hit": true
       },
       {
         "id": "desk",
+        "kind": "direct",
         "rank": 1,
         "hit": true
       },
       {
         "id": "sick-note",
+        "kind": "direct",
         "rank": 1,
         "hit": true
       },
       {
         "id": "secret",
+        "kind": "direct",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "pto-paraphrase",
+        "kind": "paraphrase",
+        "rank": 2,
+        "hit": true
+      },
+      {
+        "id": "carry-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "meal-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "receipt-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "demo-paraphrase",
+        "kind": "paraphrase",
+        "rank": 2,
+        "hit": true
+      },
+      {
+        "id": "desk-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "sick-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "secret-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "equipment-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "long-leave-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "guests-paraphrase",
+        "kind": "paraphrase",
+        "rank": 2,
+        "hit": true
+      },
+      {
+        "id": "devices-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "remote-paraphrase",
+        "kind": "paraphrase",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-pto",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-carry",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-meal",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-receipt",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-demo",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-desk",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-sick",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-secret",
+        "kind": "cross-language",
         "rank": 1,
         "hit": true
       }

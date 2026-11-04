@@ -6,6 +6,7 @@ import { limitsPayload } from "./limits";
 import { MAX_UPLOAD_BYTES, QuotaExceededError } from "./models";
 import { chunksFromPdf, isPdfBytes, PdfRejected } from "./pdf-inspect";
 import { getModelProvider } from "./provider";
+import { readBodyUpTo } from "./read-body";
 import { clientIp, consumeUpload } from "./rate-limit";
 import { endSession, getSession, nowMs, putSession, sessionTtlMs } from "./session-store";
 
@@ -96,7 +97,16 @@ export async function handleUpload(request: Request): Promise<Response> {
   const readStarted = Date.now();
   let bytes: Uint8Array;
   try {
-    const form = await request.formData();
+    const bounded = await readBodyUpTo(request);
+    if (!bounded.ok) {
+      return fail(request, 413, "too_large", "A PDF can be at most 10 MB.");
+    }
+    const contentType = request.headers.get("content-type") ?? "";
+    const form = await new Request(request.url, {
+      method: "POST",
+      headers: contentType ? { "content-type": contentType } : undefined,
+      body: new Blob([Uint8Array.from(bounded.bytes)]),
+    }).formData();
     const file = form.get("file");
     if (!(file instanceof Blob)) {
       return fail(request, 400, "bad_request", "Send the PDF as the file field.");

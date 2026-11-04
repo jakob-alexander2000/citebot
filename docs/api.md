@@ -33,4 +33,4 @@ Returns the upload caps, the 10,000 Neurons per day note, the model names, and `
 
 ## CORS
 
-`https://*.vercel.app` and localhost are allowed. Other origins get no `Access-Control-Allow-Origin` header.
+The public contract for the product site is [docs/api-contract.md](api-contract.md). Browser calls are allowed only from `https://*.vercel.app`.

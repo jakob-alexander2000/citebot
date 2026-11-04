@@ -1,7 +1,7 @@
 /**
  * Golden-question scorecard for the English CiteBot handbook.
  * Usage: npm run eval
- * No GEMINI_API_KEY. Writes evals/last-run.json from this run. Exits 1 when any case fails.
+ * No live model. Writes evals/last-run.json from this run. Exits 1 when any case fails.
  */
 import { execSync } from "node:child_process";
 import fs from "node:fs";

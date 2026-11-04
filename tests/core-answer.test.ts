@@ -16,13 +16,16 @@ describe("answer API", { concurrency: false }, () => {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          origin: "http://localhost:3000",
+          origin: "https://citebot-site-git-preview.vercel.app",
         },
         body: JSON.stringify({ question }),
       }),
     );
     assert.equal(response.status, 200);
-    assert.equal(response.headers.get("access-control-allow-origin"), "http://localhost:3000");
+    assert.equal(
+      response.headers.get("access-control-allow-origin"),
+      "https://citebot-site-git-preview.vercel.app",
+    );
     const body = (await response.json()) as {
       provider: string;
       generation: string;

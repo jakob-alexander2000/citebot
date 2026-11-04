@@ -5,12 +5,9 @@ export function isAllowedOrigin(origin: string): boolean {
   } catch {
     return false;
   }
-  const host = url.hostname;
-  if (host === "localhost" || host === "127.0.0.1") {
-    return url.protocol === "http:" || url.protocol === "https:";
-  }
   if (url.protocol !== "https:") return false;
-  return host === "vercel.app" || host.endsWith(".vercel.app");
+  // Preview and project hosts only. Localhost is not a cross-origin caller.
+  return url.hostname.endsWith(".vercel.app");
 }
 
 export function corsHeaders(request: Request): Headers {

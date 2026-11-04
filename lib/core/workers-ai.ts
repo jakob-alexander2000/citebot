@@ -33,6 +33,18 @@ export class CloudflareWorkersAI implements ModelProvider {
 
   async embed(texts: string[]): Promise<number[][] | null> {
     if (texts.length === 0) return [];
+    const out: number[][] = [];
+    const batchSize = 8;
+    for (let i = 0; i < texts.length; i += batchSize) {
+      const batch = texts.slice(i, i + batchSize);
+      const vectors = await this.embedBatch(batch);
+      if (!vectors || vectors.length !== batch.length) return null;
+      out.push(...vectors);
+    }
+    return out;
+  }
+
+  private async embedBatch(texts: string[]): Promise<number[][] | null> {
     const url = this.endpoint(this.options.embedModel);
     const response = await this.fetchImpl(url, {
       method: "POST",

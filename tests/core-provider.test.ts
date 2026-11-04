@@ -74,6 +74,10 @@ describe("model provider", { concurrency: false }, () => {
       assert.equal(body.provider, "mock");
       assert.equal(body.quota.neuronsPerDay, 10_000);
       assert.equal(response.headers.get("access-control-allow-origin"), "https://preview.vercel.app");
+      const local = await handleLimits(
+        new Request("http://127.0.0.1/api/limits", { headers: { origin: "http://localhost:3000" } }),
+      );
+      assert.equal(local.headers.get("access-control-allow-origin"), null);
       const encoded = JSON.stringify(body);
       assert.equal(encoded.includes("gemini-should-not-appear"), false);
       assert.equal(encoded.includes(TOKEN), false);

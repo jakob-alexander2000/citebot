@@ -12,11 +12,11 @@ The recorded run on 29 October 2026 passed 8 of 8 questions. Those questions run
 
 `POST /api/answer` returns sentences. Each sentence has the passages it was tied to, a match status (`supported`, `partial`, or `unsupported`), and any condition the passage states that the answer dropped (`only`, `unless`, `nur`, `außer`, `sofern`, `erst nach`, and a few close variants). The body also includes a trace of the retrieval steps and an audit id.
 
-`GET /api/limits` says which provider is active and states the upload caps. With no `CLOUDFLARE_ACCOUNT_ID` or `CLOUDFLARE_API_TOKEN`, `provider` is `mock`. The mock writes a context sentence from the document title and heading, and it drafts by copying the best matching sentences. It does not call a model vendor. A `GEMINI_API_KEY` does not change this. The answer core does not call Gemini.
+`GET /api/limits` says which provider is active and states the upload caps. With no `CLOUDFLARE_ACCOUNT_ID` or `CLOUDFLARE_API_TOKEN`, `provider` is `mock`. The mock writes a context sentence from the document title and heading, and it drafts by copying the best matching sentences. It does not call a model vendor. `/ask` uses this same path.
 
 When both Cloudflare variables are set, drafting and context sentences use Workers AI. The main model is `@cf/meta/llama-3.3-70b-instruct-fp8-fast`. If that call fails for a reason other than quota, the core tries `@cf/zai-org/glm-4.7-flash`. The free allowance is 10,000 Neurons per day and resets at 00:00 UTC. Over that limit, `/api/answer` and `/api/upload` return HTTP 429 with `code` `quota_exceeded`.
 
-Search is keyword BM25, plus embeddings when the provider can embed. The lists are merged with reciprocal rank fusion. On the mock provider the vector step is skipped and the trace says so. Details are in [docs/adr/001-hybrid-search-and-storage.md](docs/adr/001-hybrid-search-and-storage.md). The contract is in [docs/api.md](docs/api.md).
+Search is keyword BM25 plus Workers AI embeddings (`@cf/baai/bge-m3`) when the Cloudflare variables are set. The lists are merged with reciprocal rank fusion. On the mock provider the vector step is skipped and the trace says so. Details are in [docs/adr/001-hybrid-search-and-storage.md](docs/adr/001-hybrid-search-and-storage.md). The contract is in [docs/api.md](docs/api.md).
 
 The phone collection (`examples/phone-kb/services.json`) has English and German facts for prices, service area, hours, and quote rules. The page at `/answer` calls the same API.
 
@@ -26,14 +26,15 @@ The phone collection (`examples/phone-kb/services.json`) has English and German 
 
 ## What was measured
 
-On 4 November 2026, `npx tsx scripts/retrieval-quality.ts` scored 8 labeled handbook questions with BM25, top 3, the same k1 and b as retrieval-autopsy. A hit means a top-3 chunk is the labeled file and contains the labeled phrase.
+On 4 November 2026, `npx tsx scripts/retrieval-quality.ts` scored 29 labeled handbook questions at top 3. Eight questions use the handbook's own wording. Thirteen are paraphrases. Eight are German questions against the English passage. A hit means a top-3 chunk is the labeled file and contains the labeled phrase. BM25 uses the passage plus its context sentence. Vector and hybrid use `@cf/baai/bge-m3`.
 
-| Rank text | Hits | Recall@3 | MRR |
+| Ranker | Hits | Recall@3 | MRR |
 | --- | --- | --- | --- |
-| Passage only | 8/8 | 1 | 1 |
-| Passage plus the context sentence | 8/8 | 1 | 1 |
+| BM25 | 22/29 | 0.7586 | 0.7184 |
+| Vector | 29/29 | 1 | 0.9828 |
+| Hybrid | 29/29 | 1 | 0.9483 |
 
-The context sentence did not change the score on this set. Every labeled question was already rank 1. Neural embeddings were not run (`neuralEmbeddings` is null in [evals/retrieval-quality.json](evals/retrieval-quality.json)). There is no measured before/after number for meaning search.
+BM25 missed one paraphrase (`demo-paraphrase`) and six of the eight German questions. Vector and hybrid missed none. Hybrid MRR is lower than vector alone because the keyword list changes some ranks. The case list is in [evals/retrieval-quality.json](evals/retrieval-quality.json).
 
 ## Run the tests
 
@@ -57,8 +58,8 @@ npm run test:e2e
 
 ## Ask locally
 
-1. `cp .env.example .env.local` and set `GEMINI_API_KEY` if you want the `/ask` chat.
-2. Leave the Cloudflare variables empty to use the mock answer core.
+1. `cp .env.example .env.local`.
+2. Leave the Cloudflare variables empty to use the mock, or set them to use Workers AI.
 3. `npm run dev` and open http://localhost:3000/ask or http://localhost:3000/answer.
 
 Do not commit keys.
@@ -69,10 +70,10 @@ This is a description of the code, not a legal opinion.
 
 - The app runs on whatever host you deploy (the current demo is Vercel). This repo does not pin an EU region. The host sees the request, including a question and an uploaded PDF, in memory.
 - The mock path does not send the question or the PDF to a model vendor.
-- Workers AI, when the Cloudflare variables are set, sends the prompt (the question and the passages, and for an upload the chunk text) to Cloudflare at `api.cloudflare.com`. This repo does not choose an EU-only inference location. The free plan's neuron counter resets at 00:00 UTC.
-- The `/ask` chat, if `GEMINI_API_KEY` is set, sends the question to Google. That path is not used by `/api/answer`.
+- Workers AI, when the Cloudflare variables are set, sends the prompt (the question and the passages, and for an upload the chunk text) and the text to embed to Cloudflare at `api.cloudflare.com`. The embedding model is `@cf/baai/bge-m3`. This repo does not choose an EU-only inference location. The free plan's neuron counter resets at 00:00 UTC.
+- `/ask` and `/api/answer` use that same provider. This app does not call Google for answers or embeddings.
 - Optional `DATABASE_URL` stores handbook and phone chunks in Postgres (intended for Supabase). Uploaded PDFs are rejected by that store. No Supabase project is created by this repo, so the region would be the one on that future project. An EU region is the right choice for German customers. Until then the preview does not use it.
 - The audit log stores an id, the provider, counts, and the length of the question. It does not store the question, the answer text, or an uploaded PDF. A local `.cache/audit.jsonl` is written outside tests. Upload handling does not write that file.
-- CORS is open to `https://*.vercel.app` previews and to localhost so the other products can call the API from a preview.
+- Browser calls are allowed only from `https://*.vercel.app` previews. Server-to-server calls do not send an Origin header and do not need CORS.
 
 Customer documents should not be pasted into consumer chat tools. The sample handbook is fiction.

@@ -100,14 +100,22 @@ describe("hybrid search pieces", () => {
     assert.equal(storeKind({ ...process.env, DATABASE_URL: "postgres://example" }), "pgvector");
   });
 
-  it("matches the committed retrieval measurement", async () => {
+  it("matches the committed BM25 half of the retrieval measurement", async () => {
     const measured = await measureHandbookRetrieval(3);
     const file = path.join(process.cwd(), "evals", "retrieval-quality.json");
-    const committed = JSON.parse(fs.readFileSync(file, "utf8")) as typeof measured;
-    assert.deepEqual(measured, committed);
-    assert.equal(measured.neuralEmbeddings, null);
-    assert.ok(measured.before.total === 8);
-    assert.ok(measured.before.recallAt3 >= 0 && measured.before.recallAt3 <= 1);
+    const committed = JSON.parse(fs.readFileSync(file, "utf8")) as {
+      embedder: string;
+      labeled: number;
+      bm25: typeof measured.bm25;
+      vector: { total: number } | null;
+      hybrid: { total: number } | null;
+    };
+    assert.equal(measured.vector, null);
+    assert.deepEqual(measured.bm25, committed.bm25);
+    assert.equal(committed.embedder, "@cf/baai/bge-m3");
+    assert.ok(committed.labeled >= 20);
+    assert.equal(committed.vector?.total, committed.labeled);
+    assert.equal(committed.hybrid?.total, committed.labeled);
   });
 
   it("migration creates the pgvector table and excludes uploads", () => {

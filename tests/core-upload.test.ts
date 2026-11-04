@@ -5,6 +5,7 @@ import { PDFDocument, StandardFonts } from "pdf-lib";
 import { resetAuditForTests } from "../lib/core/audit";
 import { handleAnswer, handleUpload, handleUploadDelete } from "../lib/core/handlers";
 import { MAX_UPLOAD_BYTES } from "../lib/core/models";
+import { UPLOAD_BODY_SLACK } from "../lib/core/read-body";
 import { resetRateLimitForTests, setUploadRateForTests } from "../lib/core/rate-limit";
 import { getSession, resetSessionsForTests, setClockForTests, setSessionTtlForTests } from "../lib/core/session-store";
 
@@ -40,6 +41,59 @@ describe("pdf upload", { concurrency: false }, () => {
     assert.equal(response.status, 415);
     assert.equal(body.code, "not_pdf");
     assert.equal(JSON.stringify(body).includes("hello this is plain text"), false);
+  });
+
+  it("rejects a Content-Length over 10 MB before reading the body", async () => {
+    resetRateLimitForTests();
+    let pulled = 0;
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        pulled += 1;
+        controller.enqueue(new Uint8Array(1024));
+      },
+    });
+    const headers = new Headers();
+    headers.set("content-type", "multipart/form-data; boundary=bound");
+    headers.set("content-length", String(MAX_UPLOAD_BYTES + UPLOAD_BODY_SLACK + 1));
+    headers.set("x-forwarded-for", "198.51.100.40");
+    const request = new Request("http://127.0.0.1/api/upload", {
+      method: "POST",
+      headers,
+      body: stream,
+      duplex: "half",
+    } as RequestInit);
+    const response = await handleUpload(request);
+    const body = (await response.json()) as { code: string };
+    assert.equal(response.status, 413);
+    assert.equal(body.code, "too_large");
+    assert.equal(pulled, 0);
+  });
+
+  it("stops reading a stream once the body passes 10 MB", async () => {
+    resetRateLimitForTests();
+    let pulled = 0;
+    const chunk = new Uint8Array(256 * 1024);
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        pulled += chunk.byteLength;
+        controller.enqueue(chunk);
+      },
+    });
+    const headers = new Headers();
+    headers.set("content-type", "multipart/form-data; boundary=bound");
+    headers.set("x-forwarded-for", "198.51.100.41");
+    const request = new Request("http://127.0.0.1/api/upload", {
+      method: "POST",
+      headers,
+      body: stream,
+      duplex: "half",
+    } as RequestInit);
+    const response = await handleUpload(request);
+    const body = (await response.json()) as { code: string };
+    assert.equal(response.status, 413);
+    assert.equal(body.code, "too_large");
+    assert.ok(pulled <= MAX_UPLOAD_BYTES + UPLOAD_BODY_SLACK + chunk.byteLength);
+    assert.ok(pulled < MAX_UPLOAD_BYTES * 2);
   });
 
   it("rejects a file over 10 MB before parsing it", async () => {

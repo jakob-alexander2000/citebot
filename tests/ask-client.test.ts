@@ -8,6 +8,6 @@ describe("ask timeout", () => {
     assert.equal(messageForAskError({ name: "TimeoutError" }), ASK_TIMEOUT_MESSAGE);
     assert.equal(messageForAskError({ name: "AbortError" }), ASK_TIMEOUT_MESSAGE);
     assert.match(ASK_TIMEOUT_MESSAGE, /Try again/);
-    assert.equal(messageForAskError(new Error("Server is missing GEMINI_API_KEY.")), "Server is missing GEMINI_API_KEY.");
+    assert.equal(messageForAskError(new Error("The answer could not be produced.")), "The answer could not be produced.");
   });
 });
