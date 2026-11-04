@@ -4,7 +4,9 @@ Branch: `cursor/answer-core-56ce`
 
 Code that was built and deployed: `1f0803f6975aeb40354ba61062bc6aef1635434c`
 
-Vercel deployment of that commit: `dpl_U8FDoMoRgSQSn3WmwSFmDWr5qGwg` (READY)
+Head commit that first recorded this deployment: `3997c7ad212c7061c8d81d2dda734db94c48e40e`
+
+Vercel deployment of the code commit: `dpl_U8FDoMoRgSQSn3WmwSFmDWr5qGwg` (READY)
 
 Preview: https://citebot-mo2hetxyx-jakobalexander2000s-projects.vercel.app
 
