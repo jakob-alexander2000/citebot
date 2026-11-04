@@ -1,0 +1,92 @@
+{
+  "documents": [
+    {
+      "locale": "en",
+      "title": "Service prices",
+      "source": "phone/prices.en.md",
+      "sections": [
+        {
+          "heading": ["Prices", "Site visit"],
+          "text": "A site visit inside Berlin is €90. A tap repair is €160. The visit fee is waived only if the repair is booked in the same visit."
+        }
+      ]
+    },
+    {
+      "locale": "en",
+      "title": "Service area",
+      "source": "phone/area.en.md",
+      "sections": [
+        {
+          "heading": ["Service area"],
+          "text": "We cover addresses inside the Berlin S-Bahn ring and the city of Potsdam. We do not travel further unless a written quote says so."
+        }
+      ]
+    },
+    {
+      "locale": "en",
+      "title": "Hours",
+      "source": "phone/hours.en.md",
+      "sections": [
+        {
+          "heading": ["Hours"],
+          "text": "Phone hours are Monday to Friday, 09:00–17:00 Europe/Berlin. The desk is closed on German public holidays."
+        }
+      ]
+    },
+    {
+      "locale": "en",
+      "title": "Quote rules",
+      "source": "phone/quotes.en.md",
+      "sections": [
+        {
+          "heading": ["Quotes"],
+          "text": "A written quote is issued only after a site visit, unless the job is a listed fixed-price visit under €150."
+        }
+      ]
+    },
+    {
+      "locale": "de",
+      "title": "Preise",
+      "source": "phone/prices.de.md",
+      "sections": [
+        {
+          "heading": ["Preise", "Vor-Ort-Termin"],
+          "text": "Ein Vor-Ort-Termin in Berlin kostet 90 Euro. Eine Armatur-Reparatur kostet 160 Euro. Die Anfahrt entfällt nur wenn die Reparatur im selben Termin gebucht wird."
+        }
+      ]
+    },
+    {
+      "locale": "de",
+      "title": "Einsatzgebiet",
+      "source": "phone/area.de.md",
+      "sections": [
+        {
+          "heading": ["Einsatzgebiet"],
+          "text": "Wir fahren zu Adressen im Berliner S-Bahn-Ring und in Potsdam. Weiter fahren wir nicht, außer ein schriftliches Angebot erlaubt es."
+        }
+      ]
+    },
+    {
+      "locale": "de",
+      "title": "Zeiten",
+      "source": "phone/hours.de.md",
+      "sections": [
+        {
+          "heading": ["Zeiten"],
+          "text": "Telefonzeiten sind Montag bis Freitag, 09:00–17:00 Europe/Berlin. An gesetzlichen Feiertagen ist der Empfang geschlossen."
+        }
+      ]
+    },
+    {
+      "locale": "de",
+      "title": "Angebotsregeln",
+      "source": "phone/quotes.de.md",
+      "sections": [
+        {
+          "heading": ["Angebote"],
+          "text": "Ein schriftliches Angebot gibt es erst nach einer Besichtigung, sofern der Auftrag nicht in der Festpreisliste steht."
+        }
+      ]
+    }
+  ]
+}

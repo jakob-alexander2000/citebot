@@ -1,0 +1,104 @@
+{
+  "method": "BM25 k1=1.2 b=0.75, top 3, the keyword ranker from retrieval-autopsy. A hit means a top-3 chunk has the labeled source file and its own text contains the labeled phrase. before ranks the passage text. after ranks the same passage with a deterministic context sentence prepended. Neural embeddings were not run.",
+  "k": 3,
+  "labeled": 8,
+  "neuralEmbeddings": null,
+  "before": {
+    "k": 3,
+    "total": 8,
+    "hits": 8,
+    "recallAt3": 1,
+    "mrr": 1,
+    "cases": [
+      {
+        "id": "pto-days",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "carryover",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "meal",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "receipt",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "demo",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "desk",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "sick-note",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "secret",
+        "rank": 1,
+        "hit": true
+      }
+    ]
+  },
+  "after": {
+    "k": 3,
+    "total": 8,
+    "hits": 8,
+    "recallAt3": 1,
+    "mrr": 1,
+    "cases": [
+      {
+        "id": "pto-days",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "carryover",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "meal",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "receipt",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "demo",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "desk",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "sick-note",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "secret",
+        "rank": 1,
+        "hit": true
+      }
+    ]
+  }
+}

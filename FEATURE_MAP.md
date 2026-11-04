@@ -35,8 +35,24 @@ Each question is plan → at most three handbook tools → draft → verify. A f
 
 Continuous integration (`.github/workflows/ci.yml`) runs `npm test`, `npm run eval`, and `npm run build`, plus the sibling citebot-evals fixture scorecard.
 
+## Answer core
+
+`POST /api/answer` searches the handbook or the phone facts, drafts with the mock or Workers AI, and ties each sentence to a passage. Dropped conditions are flagged in code, not by a model. `POST /api/upload` keeps a PDF in memory for 30 minutes. `GET /api/limits` reports the caps and `provider`. See `docs/api.md` and `docs/adr/001-hybrid-search-and-storage.md`.
+
+| Piece | Path |
+|-------|------|
+| Rank, claims, providers | `lib/core/` |
+| Routes | `app/api/answer`, `app/api/upload`, `app/api/limits` |
+| Page | `/answer` |
+| Phone facts | `examples/phone-kb/services.json` |
+| pgvector migration | `supabase/migrations/20261104120000_citebot_chunks.sql` |
+| Retrieval numbers | `evals/retrieval-quality.json` |
+
+The site chrome stays English. The answer API accepts `locale` `en` or `de`.
+
 ## Not in this repo
 
-- A second product brand or a language switch
+- A second product brand
 - Web search or shell tools
 - Billing or multi-tenant login
+- A live Supabase project

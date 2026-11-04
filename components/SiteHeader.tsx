@@ -4,7 +4,7 @@ import { getBrand } from "@/lib/brand";
 import type { Locale } from "@/lib/locale";
 import { ui } from "@/lib/messages";
 
-type NavId = "home" | "chat" | "handbook" | "harness" | "evals";
+type NavId = "home" | "chat" | "handbook" | "harness" | "evals" | "answer";
 
 type Props = {
   active?: NavId;
@@ -47,6 +47,9 @@ export function SiteHeader({ active, locale }: Props) {
             </NavLink>
             <NavLink href="/evals" active={active === "evals"}>
               Evals
+            </NavLink>
+            <NavLink href="/answer" active={active === "answer"}>
+              API
             </NavLink>
           </nav>
         </div>
