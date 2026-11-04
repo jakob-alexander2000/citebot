@@ -1,4 +1,5 @@
 import { isQuotaFailure, QuotaExceededError } from "./models";
+import { estimateNeurons, recordNeurons } from "./neuron-budget";
 import type { GenerateRequest, GenerateResult, ModelProvider } from "./provider";
 
 type FetchLike = (input: string, init: RequestInit) => Promise<Response>;
@@ -46,31 +47,55 @@ export class CloudflareWorkersAI implements ModelProvider {
 
   private async embedBatch(texts: string[]): Promise<number[][] | null> {
     const url = this.endpoint(this.options.embedModel);
+    const inputChars = texts.reduce((sum, text) => sum + text.length, 0);
     const response = await this.fetchImpl(url, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({ text: texts }),
     });
     const parsed = await readJson(response);
-    if (isQuotaFailure(response.status, parsed)) throw new QuotaExceededError();
+    if (isQuotaFailure(response.status, parsed)) {
+      recordNeurons({
+        kind: "embed",
+        model: this.options.embedModel,
+        estimated: estimateNeurons(this.options.embedModel, inputChars),
+      });
+      throw new QuotaExceededError();
+    }
     if (!response.ok) return null;
-    return readVectors(parsed, texts.length);
+    const vectors = readVectors(parsed, texts.length);
+    if (vectors) {
+      recordNeurons({
+        kind: "embed",
+        model: this.options.embedModel,
+        estimated: estimateNeurons(this.options.embedModel, inputChars),
+      });
+    }
+    return vectors;
   }
 
   private async complete(model: string, request: GenerateRequest): Promise<string> {
     const url = this.endpoint(model);
+    const payload = JSON.stringify({ messages: messagesFor(request) });
     let response: Response;
     try {
       response = await this.fetchImpl(url, {
         method: "POST",
         headers: this.headers(),
-        body: JSON.stringify({ messages: messagesFor(request) }),
+        body: payload,
       });
     } catch (err) {
       throw this.scrub(err);
     }
     const parsed = await readJson(response);
-    if (isQuotaFailure(response.status, parsed)) throw new QuotaExceededError();
+    if (isQuotaFailure(response.status, parsed)) {
+      recordNeurons({
+        kind: "generate",
+        model,
+        estimated: estimateNeurons(model, payload.length),
+      });
+      throw new QuotaExceededError();
+    }
     const success =
       parsed && typeof parsed === "object" && "success" in parsed
         ? (parsed as { success?: boolean }).success
@@ -82,6 +107,11 @@ export class CloudflareWorkersAI implements ModelProvider {
     if (!text) {
       throw this.scrub(new Error(`Workers AI returned an empty result (status ${response.status})`));
     }
+    recordNeurons({
+      kind: "generate",
+      model,
+      estimated: estimateNeurons(model, payload.length, text.length),
+    });
     return text;
   }
 

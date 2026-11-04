@@ -9,9 +9,10 @@ const nextConfig: NextConfig = {
     "/": ["./examples/nordlicht-corpus/**/*"],
     "/ask": ["./examples/nordlicht-corpus/**/*"],
     "/handbook": ["./examples/nordlicht-corpus/**/*"],
-    "/api/chat": ["./examples/nordlicht-corpus/**/*"],
-    "/api/answer": ["./examples/nordlicht-corpus/**/*", "./examples/phone-kb/**/*"],
-    "/answer": ["./examples/nordlicht-corpus/**/*", "./examples/phone-kb/**/*"],
+    "/api/chat": ["./examples/nordlicht-corpus/**/*", "./data/passage-embeddings.json"],
+    "/api/answer": ["./examples/nordlicht-corpus/**/*", "./examples/phone-kb/**/*", "./data/passage-embeddings.json"],
+    "/api/upload": ["./data/passage-embeddings.json"],
+    "/answer": ["./examples/nordlicht-corpus/**/*", "./examples/phone-kb/**/*", "./data/passage-embeddings.json"],
   },
   turbopack: {
     rules: {

@@ -222,6 +222,55 @@ export const HANDBOOK_LABELS: RetrievalLabel[] = [
   },
 ];
 
+/**
+ * Held out from the 29-label table. Written before they were scored.
+ * German paraphrases that do not reuse the wording of the earlier German questions.
+ */
+export const HELD_OUT_GERMAN: RetrievalLabel[] = [
+  {
+    id: "de-hold-holiday",
+    kind: "cross-language",
+    question: "Wie viel Jahresurlaub steht einer Vollzeitkraft zu?",
+    source: "pto-and-leave.md",
+    phrase: "30 days",
+  },
+  {
+    id: "de-hold-rest",
+    kind: "cross-language",
+    question: "Wann verfällt der übrig gebliebene Urlaub im nächsten Jahr?",
+    source: "pto-and-leave.md",
+    phrase: "March 31",
+  },
+  {
+    id: "de-hold-meal",
+    kind: "cross-language",
+    question: "Was darf ein Geschäftsessen pro Gast höchstens kosten?",
+    source: "expense-policy.md",
+    phrase: "45",
+  },
+  {
+    id: "de-hold-receipt",
+    kind: "cross-language",
+    question: "Bis wann sind Quittungen für Ausgaben abzugeben?",
+    source: "expense-policy.md",
+    phrase: "14 days",
+  },
+  {
+    id: "de-hold-office",
+    kind: "cross-language",
+    question: "Wann muss man im Kreuzberger Studio am Schreibtisch sein?",
+    source: "welcome.md",
+    phrase: "Tuesday",
+  },
+  {
+    id: "de-hold-note",
+    kind: "cross-language",
+    question: "Nach wie vielen Krankheitstagen braucht man eine Bescheinigung vom Arzt?",
+    source: "pto-and-leave.md",
+    phrase: "doctor",
+  },
+];
+
 export type RetrievalScore = {
   k: number;
   total: number;
@@ -293,9 +342,9 @@ export async function loadScoredChunks(): Promise<ScoredChunk[]> {
   });
 }
 
-export function scoreBm25(chunks: ScoredChunk[], k = 3): RetrievalScore {
+export function scoreBm25(chunks: ScoredChunk[], k = 3, labels = HANDBOOK_LABELS): RetrievalScore {
   const docs = chunks.map((chunk) => chunk.indexText);
-  const cases = HANDBOOK_LABELS.map((label) => {
+  const cases = labels.map((label) => {
     const ranked = bm25Rank(label.question, docs, chunks.length).map(
       (hit) => chunks[hit.index]!.id,
     );
@@ -304,8 +353,14 @@ export function scoreBm25(chunks: ScoredChunk[], k = 3): RetrievalScore {
   return summarize(cases, k);
 }
 
-export function scoreVector(chunks: ScoredChunk[], matrix: number[][], queries: number[][], k = 3): RetrievalScore {
-  const cases = HANDBOOK_LABELS.map((label, labelIndex) => {
+export function scoreVector(
+  chunks: ScoredChunk[],
+  matrix: number[][],
+  queries: number[][],
+  k = 3,
+  labels = HANDBOOK_LABELS,
+): RetrievalScore {
+  const cases = labels.map((label, labelIndex) => {
     const query = queries[labelIndex] ?? [];
     const ranked = chunks
       .map((chunk, index) => ({ id: chunk.id, score: cosine(query, matrix[index] ?? []) }))
@@ -321,9 +376,10 @@ export function scoreHybrid(
   matrix: number[][],
   queries: number[][],
   k = 3,
+  labels = HANDBOOK_LABELS,
 ): RetrievalScore {
   const docs = chunks.map((chunk) => chunk.indexText);
-  const cases = HANDBOOK_LABELS.map((label, labelIndex) => {
+  const cases = labels.map((label, labelIndex) => {
     const keyword = bm25Rank(label.question, docs, chunks.length).map((hit) => ({
       id: chunks[hit.index]!.id,
       score: hit.score,

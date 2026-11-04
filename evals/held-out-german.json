@@ -1,0 +1,140 @@
+{
+  "writtenBeforeRun": true,
+  "embedder": "@cf/baai/bge-m3",
+  "labeled": 6,
+  "bm25": {
+    "k": 3,
+    "total": 6,
+    "hits": 1,
+    "recallAt3": 0.1667,
+    "mrr": 0.0833,
+    "cases": [
+      {
+        "id": "de-hold-holiday",
+        "kind": "cross-language",
+        "rank": null,
+        "hit": false
+      },
+      {
+        "id": "de-hold-rest",
+        "kind": "cross-language",
+        "rank": null,
+        "hit": false
+      },
+      {
+        "id": "de-hold-meal",
+        "kind": "cross-language",
+        "rank": null,
+        "hit": false
+      },
+      {
+        "id": "de-hold-receipt",
+        "kind": "cross-language",
+        "rank": null,
+        "hit": false
+      },
+      {
+        "id": "de-hold-office",
+        "kind": "cross-language",
+        "rank": 2,
+        "hit": true
+      },
+      {
+        "id": "de-hold-note",
+        "kind": "cross-language",
+        "rank": null,
+        "hit": false
+      }
+    ]
+  },
+  "vector": {
+    "k": 3,
+    "total": 6,
+    "hits": 6,
+    "recallAt3": 1,
+    "mrr": 1,
+    "cases": [
+      {
+        "id": "de-hold-holiday",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-hold-rest",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-hold-meal",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-hold-receipt",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-hold-office",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-hold-note",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      }
+    ]
+  },
+  "hybrid": {
+    "k": 3,
+    "total": 6,
+    "hits": 6,
+    "recallAt3": 1,
+    "mrr": 0.9167,
+    "cases": [
+      {
+        "id": "de-hold-holiday",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-hold-rest",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-hold-meal",
+        "kind": "cross-language",
+        "rank": 2,
+        "hit": true
+      },
+      {
+        "id": "de-hold-receipt",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-hold-office",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      },
+      {
+        "id": "de-hold-note",
+        "kind": "cross-language",
+        "rank": 1,
+        "hit": true
+      }
+    ]
+  }
+}

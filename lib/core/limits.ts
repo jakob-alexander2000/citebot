@@ -10,6 +10,7 @@ import {
   WORKERS_AI_QUOTA_RESET,
   readEnv,
 } from "./models";
+import { neuronSoftCap, neuronsUsedToday } from "./neuron-budget";
 import { getModelProvider } from "./provider";
 
 export function limitsPayload(env: NodeJS.ProcessEnv = process.env) {
@@ -30,8 +31,10 @@ export function limitsPayload(env: NodeJS.ProcessEnv = process.env) {
     },
     quota: {
       neuronsPerDay: WORKERS_AI_NEURONS_PER_DAY,
+      softCap: neuronSoftCap(env),
+      neuronsUsedToday: neuronsUsedToday(),
       resets: WORKERS_AI_QUOTA_RESET,
-      note: "The Workers AI free allowance is 10,000 Neurons per day. On the Free plan, requests over that limit fail.",
+      note: "neuronsUsedToday is this process's estimate since 00:00 UTC, not Cloudflare's meter. The free allowance is 10,000 Neurons per day. Past the soft cap, retrieval stays on keyword search. A real generation quota error is still HTTP 429.",
     },
   };
 }

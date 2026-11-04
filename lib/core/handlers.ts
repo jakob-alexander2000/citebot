@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { answerQuestion, SessionExpiredError } from "./answer";
 import { jsonResponse } from "./cors";
+import { embedUploadedChunks } from "./embed-runtime";
 import { indexRawChunks } from "./index-docs";
 import { limitsPayload } from "./limits";
 import { MAX_UPLOAD_BYTES, QuotaExceededError } from "./models";
@@ -126,7 +127,8 @@ export async function handleUpload(request: Request): Promise<Response> {
     const parsed = await chunksFromPdf(bytes, "upload");
     const indexStarted = Date.now();
     const provider = getModelProvider();
-    const chunks = await indexRawChunks(parsed.chunks, provider);
+    const chunks = await indexRawChunks(parsed.chunks);
+    await embedUploadedChunks(chunks, provider);
     const indexMs = Date.now() - indexStarted;
     const session = putSession({ pageCount: parsed.pageCount, chunks });
     const timings = { readMs, parseMs: parsed.parseMs, indexMs };

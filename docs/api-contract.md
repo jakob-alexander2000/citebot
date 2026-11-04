@@ -31,8 +31,10 @@ No body.
   },
   "quota": {
     "neuronsPerDay": 10000,
+    "softCap": 6000,
+    "neuronsUsedToday": 0,
     "resets": "00:00 UTC",
-    "note": "The Workers AI free allowance is 10,000 Neurons per day. On the Free plan, requests over that limit fail."
+    "note": "neuronsUsedToday is this process's estimate since 00:00 UTC, not Cloudflare's meter. The free allowance is 10,000 Neurons per day. Past the soft cap, retrieval stays on keyword search. A real generation quota error is still HTTP 429."
   }
 }
 ```

@@ -2,35 +2,23 @@
 
 Branch: `cursor/answer-core-56ce`
 
-Code that was built and called: `f8b0ce3b821ca3bed0ae056dcdedf915fc2fcc91`
+Head commit: filled in after this change is committed.
 
-Vercel deployment of that commit: `dpl_y2SMcE9SYmtbHh5LPTMYeKgXUyyc` (READY)
+Vercel deployment of that commit: not checked yet. The previous preview, `dpl_y2SMcE9SYmtbHh5LPTMYeKgXUyyc`, is commit `f8b0ce3b821ca3bed0ae056dcdedf915fc2fcc91`. It does not contain the build-time embeddings.
 
-Preview: https://citebot-66x9h1up8-jakobalexander2000s-projects.vercel.app
+## Build-time embeddings
 
-Inspector: https://vercel.com/jakobalexander2000s-projects/citebot/y2SMcE9SYmtbHh5LPTMYeKgXUyyc
+The sample handbook is embedded once. `data/passage-embeddings.json` holds 25 passages, model `@cf/baai/bge-m3`, dimension 1024, content hash `57ae2dc000c7ae7e5bb93d5e81d9791da671b8c3a786ecebf2b454aabfe524ed`. The runtime loads that file. A request embeds only the question, and an uploaded PDF. Query vectors are cached in memory (200 entries). Upload vectors stay on the session and go away with it. The phone facts are not in the file, so that collection stays on BM25.
 
-A documentation commit may sit on top of `f8b0ce3`. The preview above is the one that was called.
+Context sentences are filled from the title and headings. A model does not write them, so the hash stays valid.
 
-## Preview calls
+## Budget
 
-`GET /api/limits` on that deployment returned HTTP 200 in 0.130s. `provider` was `workers-ai`. Models were `@cf/meta/llama-3.3-70b-instruct-fp8-fast` and `@cf/zai-org/glm-4.7-flash`.
-
-`POST /api/answer` with a German handbook question (`Wie viele bezahlte Urlaubstage bekommen Vollzeitkräfte im Jahr?`, `locale: de`) returned HTTP 429 in 1.197s:
-
-```json
-{ "error": "Workers AI daily neuron allowance is used up. It resets at 00:00 UTC.", "code": "quota_exceeded" }
-```
-
-That is the real Workers AI quota path. No sentence was generated. The same Cloudflare account had just embedded the handbook for the retrieval measurement, which spends the free 10,000 Neurons per day. The allowance resets at 00:00 UTC.
-
-## Public contract
-
-`docs/api-contract.md` is the contract for citebot-site. CORS is HTTPS `*.vercel.app` only. Quota is HTTP 429 with `code` `quota_exceeded`.
+Each Workers AI call logs `citebot_neurons` with an estimate. Tokens are `ceil(chars / 4)`. Rates are the 20 Oct 2026 Workers AI prices: bge-m3 is 1,075 Neurons per million input tokens. The soft cap defaults to 6,000 (`CITEBOT_NEURON_SOFT_CAP`). Past that cap, retrieval stays on BM25 and the request still answers. Generation that hits the real daily quota still returns HTTP 429 `quota_exceeded`. `/api/limits` includes `neuronsUsedToday`. That number is this process's estimate since 00:00 UTC, not Cloudflare's meter.
 
 ## Retrieval (measured)
 
-`npx tsx scripts/retrieval-quality.ts` on 29 labels written before the run (8 direct, 13 paraphrases, 8 German questions against English passages). Embeddings are Workers AI `@cf/baai/bge-m3`. Top 3.
+`npx tsx scripts/retrieval-quality.ts` on 29 labels written before that run (8 direct, 13 paraphrases, 8 German questions against English passages). Embeddings are Workers AI `@cf/baai/bge-m3`. Top 3. Hybrid stays the default ranker.
 
 | Ranker | Hits | Recall@3 | MRR |
 | --- | --- | --- | --- |
@@ -40,11 +28,32 @@ That is the real Workers AI quota path. No sentence was generated. The same Clou
 
 BM25 missed `demo-paraphrase` and six German questions (`de-pto`, `de-carry`, `de-receipt`, `de-demo`, `de-sick`, `de-secret`). It hit the other two German questions and 12 of 13 paraphrases. Vector and hybrid missed none. Hybrid MRR is lower than vector alone.
 
+### Held-out German paraphrases
+
+Six more German questions were written in `HELD_OUT_GERMAN` before they were scored. They are not in the 29. `CITEBOT_HELD_OUT=/tmp/held-out-queries.json npx tsx scripts/held-out-german.ts` on 4 Nov 2026. The six query vectors are `@cf/baai/bge-m3`. Document vectors are the committed file. Top 3. Full rows are in `evals/held-out-german.json`.
+
+| Ranker | Hits | Recall@3 | MRR |
+| --- | --- | --- | --- |
+| BM25 | 1/6 | 0.1667 | 0.0833 |
+| Vector | 6/6 | 1 | 1 |
+| Hybrid | 6/6 | 1 | 0.9167 |
+
+BM25 hit only `de-hold-office` (rank 2). It missed `de-hold-holiday`, `de-hold-rest`, `de-hold-meal`, `de-hold-receipt`, and `de-hold-note`. Vector ranked every one first. Hybrid ranked `de-hold-meal` second and the other five first. These six were not used to change the ranker.
+
+## Live check
+
+Finished before 00:00 UTC on 5 Nov 2026 (the clock while this was written was 20:56 UTC on 4 Nov). The allowance had not reset. This row is **not checked**.
+
+| Call | Result |
+| --- | --- |
+| `GET /api/limits` on the new deployment | not checked |
+| One real German answer, with citations and the claim check, after the reset | not checked |
+
+The earlier preview call stays on the record: `GET /api/limits` on `dpl_y2SMcE9SYmtbHh5LPTMYeKgXUyyc` returned `provider: workers-ai` in 0.130s, and the German `POST /api/answer` returned HTTP 429 `quota_exceeded` in 1.197s.
+
 ## GitHub Actions
 
-Run: https://github.com/jakob-alexander2000/citebot/actions/runs/41909372227
-
-Commit: `f8b0ce3b821ca3bed0ae056dcdedf915fc2fcc91`
+Previous run, on `f8b0ce3`, before this budget change: https://github.com/jakob-alexander2000/citebot/actions/runs/41909372227
 
 | Check | Result |
 | --- | --- |
@@ -53,7 +62,7 @@ Commit: `f8b0ce3b821ca3bed0ae056dcdedf915fc2fcc91`
 | Playwright Chromium and WebKit | pass (2m23s) |
 | Vercel | pass |
 
-Playwright job log: 18 tests across the six projects. One was flaky. `webkit-iphone` "a draft that drops unless is flagged" hit the 30s test timeout once, then passed on retry in 435ms. The job reports `1 flaky` and `17 passed (38.9s)`. Every project and viewport below passed at least once, and the job is green.
+Playwright job log: 18 tests across the six projects. One was flaky. `webkit-iphone` "a draft that drops unless is flagged" hit the 30s test timeout once, then passed on retry in 435ms. The job reports `1 flaky` and `17 passed (38.9s)`.
 
 | Project | Viewport | Home and /ask | Limits and handbook cite | Dropped unless |
 | --- | --- | --- | --- | --- |
@@ -64,26 +73,32 @@ Playwright job log: 18 tests across the six projects. One was flaky. `webkit-iph
 | webkit-ipad | 744×1133 | pass | pass | pass |
 | webkit-desktop | 1280×800 | pass | pass | pass |
 
+The run for this commit is filled in after GitHub Actions finishes.
+
 ## Acceptance
 
 | Row | Result | Proof |
 | --- | --- | --- |
-| `/ask` uses the same ModelProvider as `/api/answer`, not Gemini | pass | `app/api/chat/route.ts` calls `handleChat`. `npx tsx --test tests/no-gemini.test.ts` |
-| No request to generativelanguage.googleapis.com from chat, answer, or limits | pass | Same test. A repo grep of `app`, `lib`, `components`, and `scripts` finds no `@google/generative-ai` import. The npm dependency is removed. |
-| No `Math.random()` during render | pass | `app/ask/page.tsx` uses cookie or the fixed order `control` |
-| Workers AI `@cf/baai/bge-m3` embeddings; mock when env is missing | pass | `lib/core/workers-ai.ts` and `getModelProvider`. Preview `/api/limits` returned `workers-ai`. Local tests without the env use `mock`. |
-| Harder retrieval set, measured BM25, vector, and hybrid | pass | Numbers above. `evals/retrieval-quality.json` |
-| Reject uploads over 10 MB from Content-Length, and cancel the stream | pass | `npx tsx --test tests/core-upload.test.ts` ("Content-Length" and "stops reading a stream") |
-| Preview `/api/limits` is `workers-ai` | pass | Fetched on `dpl_y2SMcE9SYmtbHh5LPTMYeKgXUyyc` |
-| One real German answer | pass as a call, no generated sentence | HTTP 429 `quota_exceeded` in 1.197s |
-| GitHub Actions Chromium and WebKit at the three sizes | pass, one flake | Run 41909372227 |
-| CORS only for `https://*.vercel.app` | pass | `lib/core/cors.ts`. Localhost is not allowed. `tests/core-provider.test.ts` |
+| Handbook passages embedded once and committed, with model id and content hash | pass | `data/passage-embeddings.json`. `npx tsx --test tests/passage-embeddings.test.ts` |
+| Runtime embeds only the query and an uploaded PDF; both are cached | pass | `lib/core/answer.ts` (`cachedQueryEmbedding`), `lib/core/embed-runtime.ts` (skips chunks that already have a vector; vectors live on the session) |
+| Soft cap defaults to 6,000, then BM25; generation quota is still 429 | pass | `npx tsx --test tests/neuron-budget.test.ts`. `CITEBOT_NEURON_SOFT_CAP`. `/api/limits` field `neuronsUsedToday` |
+| CI and evals do not call Workers AI; a test fails on a fetch to api.cloudflare.com | pass | `npx tsx --test tests/no-live-workers.test.ts`. Workflow env `CITEBOT_ALLOW_LIVE_MODEL: "0"`. CI does not run `embed:passages` or `retrieval:measure` |
+| Hybrid stays the default; original 29-label table kept | pass | Table above. `evals/retrieval-quality.json`. `hybridRank` in `lib/core/answer.ts` |
+| Six held-out German paraphrases written before the run | pass | Table above. `evals/held-out-german.json` |
+| Live `/api/limits` and one German answer after 00:00 UTC | not checked | Finished at 20:56 UTC on 4 Nov 2026, before the reset |
+| `/ask` uses the same ModelProvider as `/api/answer`, not Gemini | pass | `npx tsx --test tests/no-gemini.test.ts` |
+| No request to generativelanguage.googleapis.com | pass | Same test |
+| Reject uploads over 10 MB from Content-Length, and cancel the stream | pass | `npx tsx --test tests/core-upload.test.ts` |
+| CORS only for `https://*.vercel.app` | pass | `lib/core/cors.ts` |
 | Public contract for citebot-site | pass | `docs/api-contract.md` |
-| Unit tests | pass | `npm test` — 77 passed |
+| Unit tests | pass | `npm test` — 83 passed, 0 failed |
+| GitHub Actions Chromium and WebKit at the three sizes, on this commit | not checked | Previous green run is 41909372227 on `f8b0ce3` |
 
 ## Found, not fixed
 
-- The live German answer did not return a sentence. The Workers AI daily neuron allowance was already used. It resets at 00:00 UTC.
-- `webkit-iphone` dropped-unless was flaky once in GitHub Actions (30s timeout, passed on retry).
+- The live German answer after the 00:00 UTC reset was not run. This work finished at 20:56 UTC on 4 Nov 2026.
+- `neuronsUsedToday` is this process's estimate. It resets when the process starts, and it is not Cloudflare's account meter. CiteBot, the product site, and the phone agent share the real 10,000.
+- The phone knowledge base is not in `data/passage-embeddings.json`. Phone search stays on BM25.
 - pgvector SQL is still not executed against a database.
-- Hybrid MRR (0.9483) is lower than vector alone (0.9828) on this set.
+- Hybrid MRR is lower than vector alone on both sets (0.9483 vs 0.9828 on the 29; 0.9167 vs 1 on the six).
+- `webkit-iphone` dropped-unless was flaky once on `f8b0ce3` (30s timeout, passed on retry). This commit's Playwright run is not in yet.

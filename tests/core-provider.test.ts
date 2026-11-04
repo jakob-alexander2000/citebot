@@ -233,6 +233,7 @@ describe("model provider", { concurrency: false }, () => {
   });
 
   it("returns quota_exceeded from the answer route and does not try the fallback", async () => {
+    process.env.CITEBOT_ALLOW_LIVE_MODEL = "1";
     process.env.CLOUDFLARE_ACCOUNT_ID = ACCOUNT;
     process.env.CLOUDFLARE_API_TOKEN = TOKEN;
     delete process.env.WORKERS_AI_MODEL;
@@ -260,11 +261,12 @@ describe("model provider", { concurrency: false }, () => {
       assert.equal(response.status, 429);
       assert.equal(body.code, "quota_exceeded");
       assert.equal(JSON.stringify(body).includes(TOKEN), false);
-      assert.equal(urls.length, 1);
-      assert.equal(urls[0]?.includes(WORKERS_AI_DEFAULT_FALLBACK_MODEL), false);
+      assert.ok(urls.some((url) => url.includes(WORKERS_AI_DEFAULT_MODEL)));
+      assert.equal(urls.some((url) => url.includes(WORKERS_AI_DEFAULT_FALLBACK_MODEL)), false);
       assert.equal(urls.some((url) => url.includes("generativelanguage.googleapis.com")), false);
     } finally {
       globalThis.fetch = original;
+      delete process.env.CITEBOT_ALLOW_LIVE_MODEL;
       restoreEnv();
       resetIndexesForTests();
     }

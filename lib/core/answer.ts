@@ -5,7 +5,9 @@ import { checkClaims, type PassageRef } from "./claims";
 import { extractiveDraft } from "./draft";
 import { indexedCollection } from "./index-docs";
 import { QuotaExceededError } from "./models";
+import { canSpendNeurons, estimateNeurons } from "./neuron-budget";
 import { getModelProvider, type ModelProvider } from "./provider";
+import { cachedQueryEmbedding, rememberQueryEmbedding } from "./query-cache";
 import { hybridRank } from "./retrieve";
 import { getSession } from "./session-store";
 import type { Collection, IndexedChunk } from "./types";
@@ -49,24 +51,26 @@ async function embedQuery(
   chunks: IndexedChunk[],
   question: string,
 ): Promise<{ embedding: number[] | null; detail: string }> {
+  const ready = chunks.some((chunk) => chunk.embedding && chunk.embedding.length > 0);
+  if (!ready) return { embedding: null, detail: "skipped: no passage embeddings" };
+  const cached = cachedQueryEmbedding(question);
+  if (cached) return { embedding: cached, detail: "cached query embedding" };
   if (!provider.embed) return { embedding: null, detail: "skipped: provider has no embedder" };
+  const model = process.env.WORKERS_AI_EMBED_MODEL?.trim() || "@cf/baai/bge-m3";
+  const estimate = estimateNeurons(model, question.length);
+  if (!canSpendNeurons(estimate)) {
+    return { embedding: null, detail: "skipped: neuron soft cap, BM25 only" };
+  }
   try {
-    if (chunks.some((chunk) => !chunk.embedding)) {
-      const vectors = await provider.embed(chunks.map((chunk) => chunk.indexText));
-      if (vectors && vectors.length === chunks.length) {
-        chunks.forEach((chunk, index) => {
-          chunk.embedding = vectors[index] ?? null;
-        });
-      }
-    }
     const queryVectors = await provider.embed([question]);
     const embedding = queryVectors?.[0] ?? null;
-    return {
-      embedding,
-      detail: embedding ? "embedded the question" : "embedder returned nothing",
-    };
+    if (!embedding) return { embedding: null, detail: "embedder returned nothing" };
+    rememberQueryEmbedding(question, embedding);
+    return { embedding, detail: "embedded the question" };
   } catch (err) {
-    if (err instanceof QuotaExceededError) throw err;
+    if (err instanceof QuotaExceededError) {
+      return { embedding: null, detail: "skipped: embed quota, BM25 only" };
+    }
     return { embedding: null, detail: "skipped: embedder failed" };
   }
 }
@@ -95,7 +99,7 @@ export async function answerQuestion(input: AnswerInput) {
       detail: `${pool.length} uploaded chunks`,
     });
   } else {
-    pool = await indexedCollection(collection, provider);
+    pool = await indexedCollection(collection);
     const visible = pool.filter((chunk) => !chunk.lang || chunk.lang === locale);
     pool = visible.length > 0 ? visible : pool;
     trace.push({

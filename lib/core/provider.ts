@@ -43,8 +43,15 @@ export function workersCredentials(env: NodeJS.ProcessEnv = process.env): {
   return { accountId, apiToken };
 }
 
-/** Mock when either Workers AI variable is missing. Other API keys are ignored. */
+/**
+ * Mock when credentials are missing, when CI sets CITEBOT_ALLOW_LIVE_MODEL=0,
+ * or during unit tests unless a test opts in with CITEBOT_ALLOW_LIVE_MODEL=1.
+ */
 export function getModelProvider(env: NodeJS.ProcessEnv = process.env): ModelProvider {
+  if (readEnv("CITEBOT_ALLOW_LIVE_MODEL", env) === "0") return new MockModelProvider();
+  if (readEnv("CITEBOT_ALLOW_LIVE_MODEL", env) !== "1" && env.NODE_TEST_CONTEXT) {
+    return new MockModelProvider();
+  }
   const creds = workersCredentials(env);
   if (!creds) return new MockModelProvider();
   return new CloudflareWorkersAI({

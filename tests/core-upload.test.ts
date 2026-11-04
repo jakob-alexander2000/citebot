@@ -246,9 +246,10 @@ describe("pdf upload", { concurrency: false }, () => {
     resetRateLimitForTests();
   });
 
-  it("returns quota_exceeded from upload and does not keep the session", async () => {
+  it("keeps an upload when passage embedding hits the neuron quota", async () => {
     resetRateLimitForTests();
     resetSessionsForTests();
+    process.env.CITEBOT_ALLOW_LIVE_MODEL = "1";
     process.env.CLOUDFLARE_ACCOUNT_ID = "acct";
     process.env.CLOUDFLARE_API_TOKEN = "tok-secret";
     const original = globalThis.fetch;
@@ -263,15 +264,22 @@ describe("pdf upload", { concurrency: false }, () => {
       const bytes = await makePdf([`Quota doc ${SENTINEL}`]);
       const response = await handleUpload(uploadRequest(bytes, "quota.pdf", "198.51.100.15"));
       const body = (await response.json()) as { code?: string; sessionId?: string };
-      assert.equal(response.status, 429);
-      assert.equal(body.code, "quota_exceeded");
-      assert.equal(body.sessionId, undefined);
+      assert.equal(response.status, 200);
+      assert.equal(body.code, undefined);
+      const session = getSession(body.sessionId ?? "");
+      assert.ok(session);
+      assert.ok(session.chunks.length > 0);
+      assert.equal(
+        session.chunks.every((chunk) => !chunk.embedding || chunk.embedding.length === 0),
+        true,
+      );
       assert.equal(JSON.stringify(body).includes(SENTINEL), false);
       assert.equal(JSON.stringify(body).includes("tok-secret"), false);
       assert.equal(logs.join("\n").includes(SENTINEL), false);
     } finally {
       globalThis.fetch = original;
       console.info = originalInfo;
+      delete process.env.CITEBOT_ALLOW_LIVE_MODEL;
       delete process.env.CLOUDFLARE_ACCOUNT_ID;
       delete process.env.CLOUDFLARE_API_TOKEN;
       resetSessionsForTests();

@@ -16,7 +16,7 @@ The recorded run on 29 October 2026 passed 8 of 8 questions. Those questions run
 
 When both Cloudflare variables are set, drafting and context sentences use Workers AI. The main model is `@cf/meta/llama-3.3-70b-instruct-fp8-fast`. If that call fails for a reason other than quota, the core tries `@cf/zai-org/glm-4.7-flash`. The free allowance is 10,000 Neurons per day and resets at 00:00 UTC. Over that limit, `/api/answer` and `/api/upload` return HTTP 429 with `code` `quota_exceeded`.
 
-Search is keyword BM25 plus Workers AI embeddings (`@cf/baai/bge-m3`) when the Cloudflare variables are set. The lists are merged with reciprocal rank fusion. On the mock provider the vector step is skipped and the trace says so. Details are in [docs/adr/001-hybrid-search-and-storage.md](docs/adr/001-hybrid-search-and-storage.md). The contract is in [docs/api.md](docs/api.md).
+Search is keyword BM25 plus embeddings. The sample handbook vectors are computed once (`npm run embed:passages`) and stored in `data/passage-embeddings.json`. A request embeds only the question, or an uploaded PDF, and caches those vectors. If this process's estimated Neuron use for the UTC day passes the soft cap (default 6,000, `CITEBOT_NEURON_SOFT_CAP`), retrieval stays on BM25. `/api/limits` reports that estimate as `neuronsUsedToday`. The product-site contract is [docs/api-contract.md](docs/api-contract.md).
 
 The phone collection (`examples/phone-kb/services.json`) has English and German facts for prices, service area, hours, and quote rules. The page at `/answer` calls the same API.
 
