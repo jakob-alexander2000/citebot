@@ -313,7 +313,7 @@ ${passagesBlock(args.citations, args.chunks)}`;
 function isFatalToolError(err: unknown): boolean {
   const message = err instanceof Error ? err.message : "";
   return (
-    message.includes("GEMINI_API_KEY") || message.includes("No corpus documents")
+    message.includes("No corpus documents")
   );
 }
 

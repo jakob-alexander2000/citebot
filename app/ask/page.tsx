@@ -4,7 +4,7 @@ import { Chat } from "@/components/Chat";
 import { SiteHeader } from "@/components/SiteHeader";
 import { getBrand } from "@/lib/brand";
 import { listHandbookDocs } from "@/lib/docs";
-import { assignChipOrder, CHIP_ORDER_COOKIE, type ChipOrderVariant } from "@/lib/experiment";
+import { CHIP_ORDER_COOKIE, isChipOrderVariant, type ChipOrderVariant } from "@/lib/experiment";
 import type { Locale } from "@/lib/locale";
 import { ui } from "@/lib/messages";
 import { getLocaleState } from "@/lib/request-locale";
@@ -45,9 +45,12 @@ async function ChatWithTopics({
   );
 }
 
+/** Cookie wins. A missing cookie stays on the handbook order. No random draw during render. */
 async function chipExperiment(): Promise<{ variant: ChipOrderVariant; fresh: boolean }> {
   const jar = await cookies();
-  return assignChipOrder(jar.get(CHIP_ORDER_COOKIE)?.value, Math.random());
+  const saved = jar.get(CHIP_ORDER_COOKIE)?.value;
+  if (isChipOrderVariant(saved)) return { variant: saved, fresh: false };
+  return { variant: "control", fresh: false };
 }
 
 export async function generateMetadata() {

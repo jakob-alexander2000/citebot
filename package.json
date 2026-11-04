@@ -9,20 +9,25 @@
     "lint": "eslint",
     "ingest": "tsx scripts/ingest.ts",
     "eval": "tsx scripts/eval.ts",
-    "test": "tsx --test tests/verify.test.ts tests/tools.test.ts tests/agent-loop.test.ts tests/llm.test.ts tests/locale.test.ts tests/brand.test.ts tests/analytics.test.ts tests/eval-harness.test.ts tests/contrast.test.ts tests/markdown.test.ts tests/ask-client.test.ts tests/public-copy.test.ts tests/eval-record.test.ts",
-    "test:ci": "tsx --test tests/verify.test.ts tests/tools.test.ts tests/agent-loop.test.ts tests/llm.test.ts tests/locale.test.ts tests/brand.test.ts tests/analytics.test.ts tests/eval-harness.test.ts tests/contrast.test.ts tests/markdown.test.ts tests/ask-client.test.ts tests/public-copy.test.ts tests/eval-record.test.ts"
+    "test": "tsx --test tests/*.test.ts",
+    "test:ci": "tsx --test tests/*.test.ts",
+    "test:e2e": "playwright test",
+    "retrieval:measure": "tsx scripts/retrieval-quality.ts",
+    "embed:passages": "tsx scripts/embed-passages.ts"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "next": "16.4.3",
+    "pg": "^8.23.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "unpdf": "^1.7.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^20",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

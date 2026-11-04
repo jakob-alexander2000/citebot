@@ -44,3 +44,8 @@ next-env.d.ts
 # local embeddings cache
 .cache/
 
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+

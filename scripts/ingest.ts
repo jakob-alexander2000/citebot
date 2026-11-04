@@ -1,17 +1,8 @@
 /**
- * Precompute embeddings for /corpus into .cache/embeddings-gemini-v2.json
- * Usage: npx tsx scripts/ingest.ts
+ * Document embeddings are computed at request time by Workers AI when
+ * CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN are set. This script does not
+ * call a model vendor.
  */
-import { ensureIndex } from "../lib/vector-store";
-
-async function main() {
-  const chunks = await ensureIndex();
-  console.log(
-    `Indexed ${chunks.length} chunks → .cache/embeddings-gemini-v2.json`,
-  );
-}
-
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+console.log(
+  "Nothing to precompute. The answer core embeds with @cf/baai/bge-m3 when Workers AI credentials are set, and skips the vector step otherwise.",
+);

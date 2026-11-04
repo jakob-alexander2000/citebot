@@ -55,6 +55,12 @@ export default async function Home() {
           >
             Evals
           </Link>
+          <Link
+            href="/answer"
+            className="text-sm font-medium text-zinc-700 transition hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100"
+          >
+            Answer API
+          </Link>
         </div>
         <section className="mt-10 space-y-3">
           <h2 className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-700 dark:text-zinc-300">
