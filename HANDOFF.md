@@ -4,9 +4,17 @@ Branch: `cursor/answer-core-56ce`
 
 Implementation commit: `5e159c157e2f92303915ef36e4093123dff1e3d5`
 
-This file's SHA line was added in the following commit. The pull request head is that commit. `git rev-parse HEAD` on `cursor/answer-core-56ce` is the one to review.
+Handoff SHA line: `82ddc5359c993c2c8961ea547f1f31af9826ee1c`
 
-Vercel deployment: none at the time of the implementation commit. The pull request is the place a preview would appear. No deployment id was available in this session.
+Vercel deployment for that handoff commit: `dpl_EfQ1z4HXnKPtHK9Uay8oYJ7T55G7`, state READY.
+
+Preview URL: https://citebot-3sjjildkk-jakobalexander2000s-projects.vercel.app
+
+Branch alias: https://citebot-git-cursor-answer-c-3026ee-jakobalexander2000s-projects.vercel.app
+
+Inspector: https://vercel.com/jakobalexander2000s-projects/citebot/EfQ1z4HXnKPtHK9Uay8oYJ7T55G7
+
+A later commit that only records this deployment id will not match that deployment. The built commit is `82ddc5359c993c2c8961ea547f1f31af9826ee1c`.
 
 ## Acceptance
 
@@ -77,5 +85,5 @@ From `evals/retrieval-quality.json`, produced by `npx tsx scripts/retrieval-qual
 - Upload reads the multipart body into memory and then rejects files over 10 MB. A much larger body is still buffered before the check.
 - The audit hash of the question is not stored. Only the character count is. A short question is not in the log; the host may still keep the raw request under its own policy.
 - Workers AI region is not pinned to the EU. README states that.
-- No Vercel preview was confirmed in this session.
+- The READY preview above is for `82ddc53`. A commit that only adds this deployment id is not that deployment.
 - GitHub Actions for this branch had not finished when this file was written.
