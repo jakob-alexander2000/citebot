@@ -12,9 +12,6 @@ jobs:
   test:
     name: Fixtures and build
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: write
     steps:
       - name: Checkout
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -48,9 +45,6 @@ jobs:
   handbook-evals:
     name: citebot-evals fixtures
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: write
     steps:
       - name: Checkout CiteBot
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
